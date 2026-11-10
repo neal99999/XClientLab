@@ -12,7 +12,7 @@ jobs:
   build-and-test:
     name: Build and Run Tests
     # 指定运行环境为 macOS 14 (包含最新的 Xcode 环境)
-    runs-on: macos-14
+    runs-on: macos-latest
 
     steps:
       # 1. 检出代码
