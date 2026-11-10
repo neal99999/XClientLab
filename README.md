@@ -2,6 +2,8 @@
 
 > 一个从零构建的 iOS 高级 / 资深开发面试 Sandbox：用可复现的异常、可观测的指标和可审计的 AI-Native 工作流，把「做过」讲成「能证明」。
 
+现在的主线不是「铺十个功能」，而是 **交易所专项的两个真实问题**：极端行情下的渲染性能重构，以及跨国弱网下的 TCP 假连接 + 订单状态竞态。首屏直接给出问题、难点、动作和结果，再进入可交互复盘。
+
 ![XClientLab icon](XClientLab/Assets.xcassets/AppIcon.appiconset/AppIcon.png)
 
 ## 快速开始
@@ -23,7 +25,8 @@ xcodebuild -project XClientLab.xcodeproj \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath ./DerivedData \
   CODE_SIGNING_ALLOWED=NO \
-  -skipPackagePluginValidation build
+  -skipPackagePluginValidation \
+  -disableAutomaticPackageResolution build
 ```
 
 依赖解析与常用命令都收敛在 Makefile：
@@ -40,11 +43,11 @@ make format-check  # 只检查不修改；当前基线 19/28 文件未格式化�
 
 ## 验证结果
 
-最近一次本机验证（iOS 27.1 模拟器 / iPhone 18 Pro Max）：
+最近一次本机验证（iPhone 17 Pro / iOS 26；此前也在 iPhone 18 Pro Max / iOS 27.1 通过）：
 
 - `xcodebuild ... -skipPackagePluginValidation build` → `** BUILD SUCCEEDED **`
 - `make test` → `** TEST SUCCEEDED **`
-- `fastlane test` → 40 个用例，0 失败。
+- `fastlane test` / `xcodebuild test` → 44 个用例，0 失败。
 
 测试分层：
 
@@ -54,9 +57,9 @@ make format-check  # 只检查不修改；当前基线 19/28 文件未格式化�
 | 网络 + ViewModel | 6 | `MarketDataProviding` Mock、loading/loaded/failed 状态、重试、符号归一化 |
 | UI 组件快照 | 4 | 模块头、卡片、指标行、AI Callout（swift-snapshot-testing） |
 | 既有核心回归 | 6 | 盘口合并、重连退避、CPU payload、Allocations 数据、Markdown 解析、12 档盘口 |
-| 核心 UI 链路 | 4 | 首屏、1.1 入口、CPU RUN 完成回 IDLE、3.2 盘口 START/STOP |
+| 核心 UI 链路 | 7 | 交易所首屏、渲染案例入口、一致性案例、1.1 入口、CPU RUN 回 IDLE、CPU reset、3.2 盘口 START/STOP |
 
-测试分层、Mock 约定与快照基线维护见 [Docs/Testing.md](Docs/Testing.md)。
+测试分层、Mock 约定与快照基线维护见 [Docs/Testing.md](Docs/Testing.md)；交易所主线的完整讲法见 [Docs/Exchange-Story.md](Docs/Exchange-Story.md)。
 
 ## 常见问题
 
@@ -130,12 +133,27 @@ xcodebuild -resolvePackageDependencies -project XClientLab.xcodeproj -scheme XCl
 > Xcode GUI 首次构建会询问是否信任 SwiftLint 的 build tool plugin；命令行构建需
 > `-skipPackagePluginValidation`（Makefile 已内置）。
 
+## 交易所主线（首屏）
+
+底部只有三个 Tab，默认落在「交易所专项」：
+
+1. **案例一 · 极端行情渲染性能重构**：100+ Tick/s 下旧链路全量重绘，主线程单次提交 ~21.8ms，订单 P95 超过 1s；切到「聚合 + 裁剪」后 API 不变、主线程只接收最新版本。页面可亲手切换两条链路、点「市价平仓」测延迟。
+2. **案例二 · 跨国弱网 + 订单状态竞态**：应用层 5s Ping / 2 次丢 Pong / 10s 无下行判定假连接；订单事件用单调 Sequence + pending → filled 单向状态机拒绝旧版本。页面可注入「电梯断网」和「HTTP 慢响应」，观察自愈与拒绝回滚。
+
+![交易所主线](Docs/screenshots/07-exchange-story.jpg)
+![渲染案例](Docs/screenshots/07-render-running.jpg)
+![弱网与一致性](Docs/screenshots/08-network-race.jpg)
+
 ## 五个模块
 
 | 模块 | 场景 | 可演示证据 |
 | --- | --- | --- |
-| 01 性能优化 | 1.1 主线程 JSON + 正则同步阻塞 | 极端档 >500ms 单次停顿、HitchMonitor 卡顿统计、Time Profiler 调用树 |
-| 01 性能优化 | 1.2 长列表 + 瞬时大对象分配 | footprint 锯齿、Peak/Churn、Allocations Generation 对照 |
+| 01 性能优化 | 01 启动速度与包大小 | 本次启动实测、ObjC 类/dyld 镜像/Bundle 大小、pre-main/main-post 清单 |
+| 01 性能优化 | 02 UI 渲染 | 层级/透明、cell 复用/高度缓存、圆角离屏、重绘 |
+| 01 性能优化 | 03 网络请求 | 合并/single-flight、NSCache/MMKV/SQLite、弱网超时与退避 |
+| 01 性能优化 | 04 内存 | 循环引用/Timer/通知、分页/降采样、Leaks / Allocations / Memory Graph |
+| 01 性能优化 | 05 CPU 与主线程 | 主线程下沉、字典 vs 数组、缓存、锁竞争与优先级反转 |
+| 01 性能优化 | LIVE CPU / Alloc | 极端档 >500ms 停顿、Hitch 统计、footprint 锯齿、Peak/Churn |
 | 02 异常攻坚 | 2.1 DispatchSourceTimer 释放瞬间野指针 | `EXC_BAD_ACCESS` / `KERN_INVALID_ADDRESS 0x1d`、系统栈取证报告、LLDB 批处理 |
 | 02 异常攻坚 | 2.2 多线程非原子读写与 munmap 踩踏 | 丢失写次数、TSan 报告、并发踩踏现场 |
 | 03 交易所专项 | 3.1 弱网 WS 重连 | 状态机、指数退避 0.5→8s、±20% jitter、6 次上限、EXHAUSTED |
@@ -155,8 +173,9 @@ XClientLab/
 ├── Models/              # LabModule、LogEntry、DebugSkill 与 Markdown 解析
 ├── Core/                # HitchMonitor、MemoryProbe、格式化工具
 └── Features/
+    ├── ExchangeStory/   # 面试主线：IBIT 两个案例 + 可交互复盘
     ├── Home/            # ModuleHomeViewController + 5 个模块首页
-    ├── Performance/     # 1.1 CPUStall、1.2 AllocationStorm
+    ├── Performance/     # 五条优化链路 + CPUStall / AllocationStorm 实测
     ├── Exceptions/      # 2.1 UAF、2.2 Race、CrashProbe
     ├── Architecture/    # 5.1 依赖图、5.2 资源/替换、三方库自检
     ├── Exchange/        # 3.1 Reconnect、3.2 OrderBook
@@ -186,13 +205,13 @@ Packages/
 
 ## 演示动线
 
-推荐 15–20 分钟：
+推荐 15–20 分钟，先主线、后追问：
 
-0. 冷启动：启动页 → 主界面（1 秒内），先讲系统 LaunchScreen 与 App 内动效的分层。
-1. 性能 1.1 → 1.2：先制造停顿，再用 Instruments 证明。
-2. 异常 2.1 → 2.2：先看黑盒系统栈，再看并发丢失写。
-3. 交易所 3.1 → 3.2：断线恢复，再让高频推送保持流畅。
-4. AI-Native 4.1 → 4.2：通道纪律、Skill 沉淀、自动化产物。
+0. 冷启动：启动页 → 交易所专项首屏（1 秒内），先讲系统 LaunchScreen 与 App 内动效的分层。
+1. 交易所专项 01：30 秒电梯版 → 亲手跑旧链路（40 FPS / 21.8ms / P95 1000+ms）→ 切重构链路 → 讲三步改造与结果。
+2. 交易所专项 02：注入电梯断网（2.8s 自愈）→ 注入 HTTP 慢响应（拒绝 seq=9 回滚）→ 讲心跳与单向状态机。
+3. 追问时再进「实验室」：性能五条链路（启动/UI/网络/内存/CPU）+ 两个实测、异常 2.1 / 2.2、交易所 3.1 / 3.2。
+4. AI 工坊：通道纪律、Skill 沉淀、自动化产物。
 5. 架构 5.1 → 5.2：先看单向依赖与容器，再切 Mock 证明替换成本为零。
 
 完整讲解脚本见 [Docs/Interview-Walkthrough.md](Docs/Interview-Walkthrough.md)。
@@ -209,6 +228,8 @@ Packages/
 - [第三方依赖与工具链](Docs/ThirdParty.md)
 - [启动页：系统 LaunchScreen + App 内首屏](Docs/LaunchScreen.md)
 - [模块化架构：本地 SPM + POP + DI](Docs/ModuleArchitecture.md)
+- [交易所主线讲法](Docs/Exchange-Story.md)
 - [面试演示脚本](Docs/Interview-Walkthrough.md)
+- [AI-Native 工程化实战手册 (面试精讲白皮书)](Docs/AI-Engineering-Playbook.md)
 - [LLDB 异步崩溃 Skill](Docs/LLDB-Async-Crash-Skill.md)
 - [Terminal-first 自动化说明](Docs/Terminal-Automation.md)

@@ -10,63 +10,133 @@
 
 > 这是一个 iOS 性能与稳定性 Sandbox。每个场景都先故意制造一个可重复的异常，再用 Instruments / LLDB / 指标面板拿出证据，最后说明 AI MCP 如何把取证过程工程化。
 
-工程采用 UIKit + MVVM + Combine，页面全部代码构建、约束用 SnapKit，没有 SwiftUI / Storyboard；现场可以直接打开 Xcode Debug View Hierarchy 讲真实 UIView 树。底部五个 Tab 对应五个能力面：性能、异常、交易所、AI-Native、架构（架构为加分项，可最后用 2 分钟讲）。
+工程采用 UIKit + MVVM + Combine，页面全部代码构建、约束用 SnapKit，没有 SwiftUI / Storyboard；现场可以直接打开 Xcode Debug View Hierarchy 讲真实 UIView 树。底部有三个 Tab：**交易所专项 / 实验室 / AI 工坊**。主线先把交易所的两个案例讲透，性能、异常、架构都放到「实验室」里作为追问区。
 
 ---
 
-## 1. 性能优化（4 分钟）
+## 1. 交易所专项（8–10 分钟，主线）
 
-### 1.1 主线程卡顿（Time Profiler）
+> 这一节是整场的主菜。详细逐字稿、追问 Q&A 和事实边界见 [交易所主线讲法](Exchange-Story.md)，这里只给现场操作顺序。
 
-进入「性能优化 → 1.1 主线程 JSON 卡顿」。
+### 1.1 案例一：极端行情渲染性能重构（4 分钟）
 
-操作：
+进入「交易所专项 → 案例一」。
 
-1. 强度选「极端」。
-2. 点击「制造主线程压力」。
-3. 观察页面顶部的 worst hitch、blocked 总时长和逐轮 MiniBar。
-4. 同时用 Xcode Instruments 的 Time Profiler attach，录制 5 秒。
-
-代码里故意保留的反模式：
-
-- `JSONSerialization.jsonObject` 解析 6,000 条记录的 JSON，全部在主线程。
-- `NSRegularExpression` 对整段字符串做全量匹配，循环 12 轮。
-- 没有分块、没有取消检查、没有后台队列。
+1. 先用 30 秒讲结果：100+ Tick/s、20–30 FPS、下单延迟 >1s；三步改造后 55+ FPS、<16ms、CPU −20%。
+2. 默认「旧链路 · 全量重绘」，点 `START STRESS`，读出 FPS ~40、MAIN THREAD ~21ms、ORDER P95 1000+ms。
+3. 点「市价平仓 · 测延迟」，解释“按钮没坏，是 main queue 在排队”。
+4. `STOP`，切「重构后 · 聚合 + 裁剪」，再跑一次，对照主线程和订单延迟。
+5. 讲三步：算力搬家 + 版本凭证、视口裁剪 + 脏矩形、100ms 时间窗聚合。
 
 讲解点：
 
-> 这不是「不会用后台队列」，而是为了给 Time Profiler 一个干净、确定的 main thread 样本。真实修复是：分块 + `Task.detached`/自定义队列 + 增量解析 + 可取消。
+> 卡顿不是“体验问题”，是交易问题。用户在剧烈行情里点平仓，主线程每多排 16ms，滑点就多一分。优化的目标不是“画得更多”，而是“主线程只做最新、最少的那一帧”。
 
-证据：
+### 1.2 案例二：跨国弱网 + 订单状态竞态（4 分钟）
 
-- 极端档单轮 >500ms，页面会记录每一轮的 `durationMs`。
-- Time Profiler 中主线程被 `JSONSerialization` / `NSRegularExpression` 占满。
-- HitchMonitor 通过 CADisplayLink 统计帧间隔，估算 dropped frames。
+进入「交易所专项 → 案例二」。
 
-### 1.2 分配锯齿（Allocations）
-
-进入「1.2 分配风暴」。
-
-操作：
-
-1. 强度选「极端」。
-2. 点击开始，页面每 80ms 分配 20 个 256KB buffer，并持续产生 600 个短命 `QuoteTick`。
-3. 观察 footprint Sparkline 的锯齿和 Peak/Churn 指标。
-4. 在 Allocations 中标记 Generation，对照峰值前后。
+1. 保持「开启心跳探测」，点「注入断网 · 电梯场景」，观察 2.8s 自愈。
+2. 关掉心跳再注入一次，观察停在“假连接”。
+3. 保持「开启版本号保护」，点「注入乱序事件 · HTTP 慢响应」：WS `seq=12 filled` 先到，HTTP `seq=9 pending` 被丢弃。
+4. 关掉保护再注入一次，观察状态回滚到「挂单中」。
+5. 讲两层防线：应用层 5s Ping / 2 次丢 Pong / 10s 无下行；业务层单调 Sequence + `pending → filled` 单向状态机。
 
 讲解点：
 
-> 长列表本身不是问题，问题是滚动期间叠加的瞬时大对象。`LazyVStack` 只减少视图创建，不会阻止业务层的瞬时分配。修复方向是对象池、分页、降采样和在滚动时暂停非关键分配。
-
-面试官追问「怎么区分缓存和泄漏」：
-
-> 看 retain path，而不是只看 footprint。缓存有明确的上限和淘汰策略；泄漏是对象已经不该活，却仍能从 root 走到它。
+> Reachability 只说明“有网卡”，TCP keepalive 又是分钟级；客户端必须自己判死链。订单状态则要假设“任何两条通道都可能乱序”，用版本号拒绝旧事件，用状态机兜底不可回滚。
 
 ---
 
-## 2. 异常与疑难攻坚（4 分钟）
+## 2. 追问：性能优化（5 分钟，五条链路）
 
-### 2.1 系统栈黑盒 Crash（UAF / 0x1d）
+进入「实验室 → 性能优化」。先讲结论：
+
+> 性能不是“某个 API 慢”，而是启动、UI、网络、内存、CPU 五层成本。先分层、再测量，最后只改瓶颈。
+
+页面先给五条链路，再给两个真实波形（CPU / Allocations）。不要一上来就跑 1.1。
+
+### 2.1 启动速度与包大小
+
+进入「01 启动速度与包大小」。
+
+操作：
+
+1. 看「本次启动的现场数字」：didFinish → 首帧、ObjC 类数、dyld 镜像数、Bundle 大小。
+2. 讲 main 前：减少/合并动态库，减少 ObjC 类、分类、`+load`/静态构造函数；用二进制插装找到启动热路径，再用 `-order_file` 重排。
+3. 讲 main 后：不在 `didFinishLaunchingWithOptions` 里同步初始化推送、埋点、DB；用 lazy / 后台队列 / 首帧后启动。
+4. 讲包大小：先删无用资源，再用 PDF/SVG 单尺寸、Lottie、LTO / `-Osize` / App Thinning。Bitcode 已被 Apple 废弃，不要把它当答案。
+
+讲解点：
+
+> 启动图只掩盖白屏，不减少工作量。真正可回归的是首帧时间、main 前/后分段、类/镜像数量和包大小 diff。
+
+### 2.2 UI 渲染优化
+
+进入「02 UI 渲染优化」。
+
+按四个点讲：
+
+- 减少视图嵌套和透明视图；用 Color Blended Layers 看 overdraw，静态背景合成成一张图。
+- 列表用 cell 复用、缓存高度；重计算不要放在 `cellForRow`。
+- 图片异步加载、按目标像素降采样；圆角优先 CoreGraphics 预渲染或透明覆盖层，避免 `cornerRadius + masksToBounds` 触发离屏。
+- 合并 `setNeedsDisplay` / `setNeedsLayout`，只刷新脏矩形；动画优先改 `CALayer` 属性。
+
+讲解点：
+
+> 改完必须用 FPS / hitch / 离屏帧对比，不能只说“感觉顺了”。
+
+### 2.3 网络请求优化
+
+进入「03 网络请求优化」。
+
+- 合并：同屏同 symbol 的请求做 batch；在途请求 single-flight；搜索用 debounce。
+- 缓存：NSCache（内存、自动回收）、MMKV（高频 KV）、SQLite（查询/离线）、HTTP ETag / Cache-Control。
+- 弱网：连接/读取超时、指数退避 + jitter、重试上限、幂等键。
+
+讲解点：
+
+> 网络优化要报三个数：请求数、缓存命中率、P95；只看“快了”没有意义。
+
+### 2.4 内存优化
+
+进入「04 内存优化」。
+
+- 闭包/Block 用 `[weak self]`；delegate 用 `weak`；Timer/DispatchSource 在 `deinit`/`viewDidDisappear` invalidate/cancel；通知 token 要移除。
+- 大对象分页、图片降采样、循环里 `autoreleasepool` 削峰。
+- NSCache 设 `countLimit` / `totalCostLimit`；收到内存警告时主动清。
+- 工具：Allocations 看峰值，Leaks 看不可达环，Memory Graph 看 retain path。
+
+讲解点：
+
+> 缓存有上限和淘汰策略；泄漏是“不该活却还活着”。两者都只能靠 retain path 区分。
+
+### 2.5 CPU 与主线程
+
+进入「05 CPU 与主线程」。
+
+- 主线程只做 UI/事件；JSON、正则、图片解码、DB、文件 IO 下沉到背景队列。
+- 频繁查找用字典/集合（O(1)），不要遍历数组；缓存重复计算，只算可见区。
+- 缩小锁临界区、避免嵌套锁；用串行队列/actor 收敛共享状态，注意优先级反转。
+
+讲解点：
+
+> Time Profiler 看 self time，不要只看最重栈；先确认是算法、锁还是主线程排队。
+
+### 2.6 现场波形（可选 2 分钟）
+
+回到性能首页底部：
+
+1. **LIVE 主线程 JSON 风暴**：极端档同步解析 + 正则，观察 >500ms worst pass、Hitch 统计；讲“主线程被同步任务占满”的反模式。
+2. **LIVE Allocations 锯齿**：长列表 + 256KB 临时 buffer + 短命对象，观察 footprint 锯齿、Peak/Churn；讲对象池、分页、降采样。
+
+两个场景都保留「古法排查痛点 / AI MCP 新实践」注释：先让 Instruments 给出证据，再让 MCP 把 trace 转成最小复现和可回归用例。
+
+---
+
+## 3. 追问：异常与疑难攻坚（可选 3 分钟）
+
+### 3.1 系统栈黑盒 Crash（UAF / 0x1d）
 
 进入「异常 → 2.1 系统栈 UAF」。
 
@@ -96,7 +166,7 @@ MCP 切入点：
 
 > 把「先 status、running 时先 interrupt、轮询到 stopped、再批量取证、最后只 resume 一次」固化成通道纪律。人不再靠记忆，模型也不会在进程 running 时乱发 `bt all`。
 
-### 2.2 并发读写与野指针踩踏
+### 3.2 并发读写与野指针踩踏
 
 进入「2.2 并发竞态」。
 
@@ -121,9 +191,9 @@ MCP 切入点：
 
 ---
 
-## 3. 交易所专项（4 分钟）
+## 4. 实验室：交易所细节（可选 2 分钟）
 
-### 3.1 弱网重连
+### 4.1 弱网重连
 
 进入「交易所 → 3.1 弱网重连」。
 
@@ -145,7 +215,7 @@ MCP 切入点：
 
 > 退避解决「不要立刻再打」，jitter 解决「所有客户端同时再打」，上限解决「不要无限打」，状态机解决「不要并发打」。四件事缺一不可。
 
-### 3.2 高频盘口
+### 4.2 高频盘口
 
 进入「3.2 高频盘口」。
 
@@ -166,9 +236,9 @@ MCP 切入点：
 
 ---
 
-## 4. AI-Native 与研发效能（4 分钟）
+## 5. AI 工坊（可选 3 分钟）
 
-### 4.1 Xcode MCP 通道纪律 + Skills
+### 5.1 Xcode MCP 通道纪律 + Skills
 
 进入「AI-Native → 4.1」。
 
@@ -182,8 +252,9 @@ MCP 切入点：
 讲解点：
 
 > 古法是「凭记忆敲 LLDB」；新实践是把纪律写成状态机，把经验写成 Skill。MCP 不是让模型替代工程师，而是让模型在受控通道里执行可审计的步骤。
+> 完整的 AI-Native 五位一体架构（Rules + Skills + Agents + Hooks + MCP）与面试 3 分钟话术详见 [AI-Engineering-Playbook.md](AI-Engineering-Playbook.md)。仓库内已配好实际可执行的 [.claude/skills/lldb-async-crash/SKILL.md](../.claude/skills/lldb-async-crash/SKILL.md) 与 MCP 服务配置。
 
-### 4.2 Terminal-first 自动化桩
+### 5.2 Terminal-first 自动化桩
 
 进入「4.2」。
 
@@ -208,11 +279,11 @@ cat "$APP_DATA/Documents/XClientLabAutomation/CPUStallAutomationTests.swift"
 
 > 生成的 XCTest 文件需要手动加入 `XClientLabTests` target，因为 iOS App 沙盒不能修改 Xcode 工程文件。这个边界本身就是工程化的一部分：生成器负责内容，工程配置仍由人控制。
 
-## 4.5 模块化架构：把「解耦」跑起来（可选 2 分钟）
+## 6. 架构与模块化：把「解耦」跑起来（可选 2 分钟）
 
 进入「架构 → 5.1 / 5.2」。
 
-### 5.1 依赖图与组装根
+### 6.1 依赖图与组装根
 
 操作：
 
@@ -224,7 +295,7 @@ cat "$APP_DATA/Documents/XClientLabAutomation/CPUStallAutomationTests.swift"
 
 > 古法是「画一张架构图，代码里照样 import 具体类型」；新实践是把依赖方向变成编译期约束。本地 SPM 包让「契约不能反向依赖实现」从口头约定变成构建失败。
 
-### 5.2 资源包 × 服务替换
+### 6.2 资源包 × 服务替换
 
 操作：
 
@@ -238,7 +309,7 @@ cat "$APP_DATA/Documents/XClientLabAutomation/CPUStallAutomationTests.swift"
 
 ---
 
-## 5. 收尾（1 分钟）
+## 7. 收尾（1 分钟）
 
 一句话总结：
 
@@ -262,7 +333,7 @@ xcodebuild -project XClientLab.xcodeproj -scheme XClientLab \
   -derivedDataPath ./DerivedData CODE_SIGNING_ALLOWED=NO \
   -skipPackagePluginValidation build
 
-# 测试（40 个用例；推荐 fastlane scan）
+# 测试（44 个用例；推荐 fastlane scan）
 fastlane test
 
 # 等价裸命令
