@@ -1,7 +1,6 @@
 import XCTest
 
 final class XClientLabUITests: XCTestCase {
-
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
@@ -134,7 +133,14 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        app.tabBars.buttons["tab.lab"].tap()
+        // 启动动画结束前点击标签可能被吞掉，先等首屏真正就绪。
+        XCTAssertTrue(
+            app.navigationBars["交易所专项"].waitForExistence(timeout: 10),
+            "Exchange story should be ready before switching tabs"
+        )
+        let labTab = app.tabBars.buttons["tab.lab"]
+        XCTAssertTrue(labTab.waitForExistence(timeout: 10), "Lab tab should exist")
+        labTab.tap()
         XCTAssertTrue(
             app.buttons["lab.performance"].waitForExistence(timeout: 6),
             "Lab index should finish pushing before scrolling to exchange"
@@ -191,7 +197,7 @@ final class XClientLabUITests: XCTestCase {
         // 先滚动再查询，避免 waitForExistence 在首屏直接判失败。
         var swipes = 0
         while swipes <= maxSwipes {
-            if element.exists && element.isHittable {
+            if element.exists, element.isHittable {
                 element.tap()
                 return
             }
