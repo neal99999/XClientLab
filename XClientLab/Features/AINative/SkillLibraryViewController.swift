@@ -275,7 +275,7 @@ private extension SkillLibraryViewController {
             ("SKILLS", LabUI.amber),
             ("AGENTS", LabUI.cyan),
             ("HOOKS", LabUI.violet),
-            ("MCP", LabUI.mint),
+            ("MCP", LabUI.mint)
         ]
         let text = NSMutableAttributedString()
         for (index, step) in steps.enumerated() {
@@ -284,7 +284,7 @@ private extension SkillLibraryViewController {
                     string: "  →  ",
                     attributes: [
                         .font: LabUI.font(10, weight: .semibold, mono: true),
-                        .foregroundColor: LabUI.steel,
+                        .foregroundColor: LabUI.steel
                     ]
                 ))
             }
@@ -292,7 +292,7 @@ private extension SkillLibraryViewController {
                 string: step.0,
                 attributes: [
                     .font: LabUI.font(10, weight: .bold, mono: true),
-                    .foregroundColor: step.1,
+                    .foregroundColor: step.1
                 ]
             ))
         }
@@ -580,7 +580,7 @@ private struct ArchitecturePillar {
         ArchitecturePillar(code: "SKILLS", detail: "把排查步骤沉淀成剧本", role: "剧本", accent: LabUI.amber),
         ArchitecturePillar(code: "AGENTS", detail: "只读预审与执行代理分工", role: "分工", accent: LabUI.cyan),
         ArchitecturePillar(code: "HOOKS", detail: "提交前自动跑门禁", role: "门禁", accent: LabUI.violet),
-        ArchitecturePillar(code: "MCP", detail: "LLDB / xcodebuild 真实通道", role: "通道", accent: LabUI.mint),
+        ArchitecturePillar(code: "MCP", detail: "LLDB / xcodebuild 真实通道", role: "通道", accent: LabUI.mint)
     ]
 }
 
