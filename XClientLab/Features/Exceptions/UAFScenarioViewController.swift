@@ -20,8 +20,14 @@ final class UAFScenarioViewController: LabBaseViewController {
     private let fireButton = LabButton(title: "ARM SYSTEM-STACK UAF", style: .destructive, accent: LabUI.coral)
     private let cancelButton = LabButton(title: "CANCEL", style: .ghost)
 
-    init() { super.init(accent: LabUI.coral) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.coral)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -140,7 +146,9 @@ final class UAFScenarioViewController: LabBaseViewController {
         ) { [weak self] in self?.viewModel.arm() }
     }
 
-    @objc private func cancelTapped() { viewModel.cancel() }
+    @objc private func cancelTapped() {
+        viewModel.cancel()
+    }
 
     @objc private func copyReport() {
         UIPasteboard.general.string = CrashProbe.expectedSystemStackReport

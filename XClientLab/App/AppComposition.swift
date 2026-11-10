@@ -16,7 +16,7 @@ enum AppComposition {
             module.registerServices(in: container)
         }
         #if DEBUG
-        NSLog("[AppComposition] services=%@", container.registeredServices.joined(separator: ", "))
+            NSLog("[AppComposition] services=%@", container.registeredServices.joined(separator: ", "))
         #endif
     }
 }

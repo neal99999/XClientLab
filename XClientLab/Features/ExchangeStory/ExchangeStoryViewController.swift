@@ -11,7 +11,10 @@ final class ExchangeStoryViewController: LabBaseViewController {
         super.init(accent: LabUI.mint)
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

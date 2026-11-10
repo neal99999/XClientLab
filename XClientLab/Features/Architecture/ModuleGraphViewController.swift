@@ -15,8 +15,14 @@ final class ModuleGraphViewController: LabBaseViewController {
     private let resultLabel = labLabel("点击 RESOLVE SCOPES，验证 singleton / transient 的实例身份。", size: 11, color: LabUI.textSecondary, lines: 0)
     private let thirdPartyStack = labStack(spacing: 5)
 
-    init() { super.init(accent: LabUI.amber) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.amber)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

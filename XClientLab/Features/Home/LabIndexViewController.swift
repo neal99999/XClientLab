@@ -8,7 +8,10 @@ final class LabIndexViewController: LabBaseViewController {
         super.init(accent: LabUI.cyan)
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,7 +95,7 @@ final class LabIndexViewController: LabBaseViewController {
             lines: 0
         ))
         let steps = labStack(axis: .horizontal, spacing: 6, distribution: .fillEqually)
-        ["01 对照", "02 验证", "03 AI 工坊"].enumerated().forEach { index, text in
+        for (index, text) in ["01 对照", "02 验证", "03 AI 工坊"].enumerated() {
             let chip = labLabel(text, size: 9, weight: .semibold, color: LabUI.cyan, mono: true, lines: 1)
             chip.textAlignment = .center
             chip.backgroundColor = LabUI.cyan.withAlphaComponent(0.10)

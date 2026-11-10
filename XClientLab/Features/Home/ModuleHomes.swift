@@ -38,7 +38,10 @@ final class PerformanceHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - 02 Exceptions
@@ -79,7 +82,10 @@ final class ExceptionsHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - 03 Exchange
@@ -120,7 +126,10 @@ final class ExchangeHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - 04 AI-Native
@@ -161,7 +170,10 @@ final class AINativeHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - 05 Architecture
@@ -202,5 +214,8 @@ final class ArchitectureHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }

@@ -24,8 +24,14 @@ final class ReconnectViewController: LabBaseViewController {
     private let dropButton = LabButton(title: "DROP 1006", style: .secondary, accent: LabUI.amber)
     private let chaosSwitch = UISwitch()
 
-    init() { super.init(accent: LabUI.mint) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.mint)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -175,12 +181,26 @@ final class ReconnectViewController: LabBaseViewController {
             let spacer = UIView()
             spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
             row.addArrangedSubview(spacer)
-            row.addArrangedSubview(labLabel(String(format: "base %.1fs  %@  → %.1fs", record.baseDelay, record.jitterLabel, record.finalDelay), size: 9, color: LabUI.textTertiary, mono: true, lines: 1))
+            row.addArrangedSubview(labLabel(
+                String(format: "base %.1fs  %@  → %.1fs", record.baseDelay, record.jitterLabel, record.finalDelay),
+                size: 9,
+                color: LabUI.textTertiary,
+                mono: true,
+                lines: 1
+            ))
             ledgerStack.addArrangedSubview(row)
         }
     }
 
-    @objc private func connectTapped() { viewModel.connect() }
-    @objc private func dropTapped() { viewModel.simulateWeakNetworkDrop() }
-    @objc private func chaosChanged() { viewModel.chaosEnabled = chaosSwitch.isOn }
+    @objc private func connectTapped() {
+        viewModel.connect()
+    }
+
+    @objc private func dropTapped() {
+        viewModel.simulateWeakNetworkDrop()
+    }
+
+    @objc private func chaosChanged() {
+        viewModel.chaosEnabled = chaosSwitch.isOn
+    }
 }

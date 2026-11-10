@@ -23,8 +23,14 @@ final class SkillLibraryViewController: LabBaseViewController {
     private let resetButton = LabButton(title: "RESET", style: .ghost)
     private let checklist = labStack(spacing: 6)
 
-    init() { super.init(accent: LabUI.violet) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.violet)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -178,9 +184,17 @@ final class SkillLibraryViewController: LabBaseViewController {
         }
     }
 
-    @objc private func runTapped() { viewModel.runBatch() }
-    @objc private func unsafeTapped() { viewModel.sendWhileRunning() }
-    @objc private func resetTapped() { viewModel.reset() }
+    @objc private func runTapped() {
+        viewModel.runBatch()
+    }
+
+    @objc private func unsafeTapped() {
+        viewModel.sendWhileRunning()
+    }
+
+    @objc private func resetTapped() {
+        viewModel.reset()
+    }
 }
 
 /// Skill 详情：直接复用 Markdown 预览，并提供一键复制。
@@ -192,7 +206,10 @@ final class SkillDetailViewController: LabBaseViewController {
         super.init(accent: skill.accent)
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()

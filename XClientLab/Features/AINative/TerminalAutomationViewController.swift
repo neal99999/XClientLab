@@ -27,8 +27,14 @@ final class TerminalAutomationViewController: LabBaseViewController {
     private let emptyLabel = labLabel("还没有产物。选择场景与类型，点击 GENERATE。", size: 11.5, color: LabUI.textTertiary, lines: 0)
     private let statusLabel = labLabel("READY · 产物写入 Documents/XClientLabAutomation", size: 10, color: LabUI.textSecondary, mono: true, lines: 1)
 
-    init() { super.init(accent: LabUI.violet) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.violet)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -164,9 +170,9 @@ final class TerminalAutomationViewController: LabBaseViewController {
         }
 
         previewCard.add(labLabel(artifact.fileName, size: 10, weight: .semibold, color: LabUI.violet, mono: true, lines: 1))
-        let prefix = String(artifact.content.prefix(1_600))
+        let prefix = String(artifact.content.prefix(1600))
         previewCard.add(LabCodeBlockView(
-            code: prefix + (artifact.content.count > 1_600 ? "\n… (\(artifact.byteCount) bytes total)" : ""),
+            code: prefix + (artifact.content.count > 1600 ? "\n… (\(artifact.byteCount) bytes total)" : ""),
             accent: LabUI.violet
         ))
         let copy = LabButton(title: "COPY CONTENT", style: .secondary, accent: LabUI.violet, systemImage: "doc.on.doc")
@@ -224,6 +230,11 @@ final class TerminalAutomationViewController: LabBaseViewController {
         viewModel.kind = all[kindControl.selectedSegmentIndex]
     }
 
-    @objc private func generateTapped() { viewModel.generate() }
-    @objc private func resetTapped() { viewModel.reset() }
+    @objc private func generateTapped() {
+        viewModel.generate()
+    }
+
+    @objc private func resetTapped() {
+        viewModel.reset()
+    }
 }

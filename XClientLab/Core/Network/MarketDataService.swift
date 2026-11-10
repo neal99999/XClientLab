@@ -18,7 +18,7 @@ enum MarketDataError: Error, Equatable {
         switch self {
         case .invalidSymbol: return "交易对格式不合法"
         case .transport: return "网络连接失败"
-        case .httpStatus(let code): return "服务端返回 HTTP \(code)"
+        case let .httpStatus(code): return "服务端返回 HTTP \(code)"
         case .malformedResponse: return "行情响应格式异常"
         }
     }
@@ -57,7 +57,7 @@ final class URLSessionMarketDataService: MarketDataProviding {
             throw MarketDataError.transport
         }
 
-        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+        if let http = response as? HTTPURLResponse, !(200 ..< 300).contains(http.statusCode) {
             throw MarketDataError.httpStatus(http.statusCode)
         }
 

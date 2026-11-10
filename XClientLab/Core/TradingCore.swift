@@ -69,11 +69,11 @@ enum TradingTime {
     static let utc = TimeZone(secondsFromGMT: 0)!
 
     static func date(fromMillis millis: Int64) -> Date {
-        Date(timeIntervalSince1970: Double(millis) / 1_000)
+        Date(timeIntervalSince1970: Double(millis) / 1000)
     }
 
     static func millis(from date: Date) -> Int64 {
-        Int64((date.timeIntervalSince1970 * 1_000).rounded())
+        Int64((date.timeIntervalSince1970 * 1000).rounded())
     }
 
     /// 盘口日志统一用 UTC `HH:mm:ss.SSS`，避免演示机时区影响断言。
@@ -167,7 +167,7 @@ enum OrderValidator {
         let symbol = request.symbol.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard !symbol.isEmpty else { return .failure(.emptySymbol) }
 
-        let range = NSRange(symbol.startIndex..<symbol.endIndex, in: symbol)
+        let range = NSRange(symbol.startIndex ..< symbol.endIndex, in: symbol)
         guard symbolRegex.firstMatch(in: symbol, range: range) != nil else {
             return .failure(.invalidSymbol)
         }

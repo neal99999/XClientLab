@@ -2,9 +2,6 @@ import Combine
 import Foundation
 import UIKit
 
-import Foundation
-import UIKit
-
 // MARK: - Scenario 4.2 · Terminal-first automation
 
 enum AutomationArtifactKind: String, CaseIterable, Identifiable {
@@ -12,7 +9,9 @@ enum AutomationArtifactKind: String, CaseIterable, Identifiable {
     case lldb = "LLDB 断点"
     case mcp = "MCP 指令"
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var systemImage: String {
         switch self {
@@ -39,7 +38,9 @@ enum AutomationScenario: String, CaseIterable, Identifiable {
     case reconnect
     case orderBook
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var title: String {
         switch self {
@@ -110,7 +111,9 @@ struct GeneratedArtifact: Identifiable {
     let savedURL: URL?
     let createdAt: Date
 
-    var byteCount: Int { content.utf8.count }
+    var byteCount: Int {
+        content.utf8.count
+    }
 
     var formattedTime: String {
         let formatter = DateFormatter()

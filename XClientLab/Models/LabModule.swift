@@ -7,7 +7,9 @@ enum LabModule: String, CaseIterable, Identifiable {
     case aiNative
     case architecture
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var index: String {
         switch self {

@@ -43,7 +43,10 @@ final class RenderCaseViewController: LabBaseViewController {
         super.init(accent: LabUI.cyan)
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -261,18 +264,18 @@ final class RenderCaseViewController: LabBaseViewController {
     private func legacyTick() {
         let start = CACurrentMediaTime()
         var acc = 0.0
-        for i in 0..<240_000 {
+        for i in 0 ..< 240_000 {
             acc += sin(Double(i) + Double(tick) * 0.013)
         }
         tick += 1
         if var last = candles.last {
-            last.close = max(1, last.close + Double.random(in: -18...18))
+            last.close = max(1, last.close + Double.random(in: -18 ... 18))
             last.high = max(last.high, last.close)
             last.low = min(last.low, last.close)
             candles[candles.count - 1] = last
         }
         chart.setCandles(candles)
-        let cost = (CACurrentMediaTime() - start) * 1_000
+        let cost = (CACurrentMediaTime() - start) * 1000
         lastTickCost = cost
         if tick % 8 == 0 {
             workTile.update(value: String(format: "%.1f", cost), color: cost > 4 ? LabUI.coral : LabUI.amber)
@@ -286,12 +289,12 @@ final class RenderCaseViewController: LabBaseViewController {
         version += 1
         let captured = version
         var acc = 0.0
-        for i in 0..<900 {
+        for i in 0 ..< 900 {
             acc += cos(Double(i) * 0.02)
         }
         var next = candles
         if var last = next.last {
-            last.close = max(1, last.close + Double.random(in: -18...18))
+            last.close = max(1, last.close + Double.random(in: -18 ... 18))
             last.high = max(last.high, last.close)
             last.low = min(last.low, last.close)
             next[next.count - 1] = last
@@ -323,7 +326,7 @@ final class RenderCaseViewController: LabBaseViewController {
         let start = CACurrentMediaTime()
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            let measured = (CACurrentMediaTime() - start) * 1_000
+            let measured = (CACurrentMediaTime() - start) * 1000
             // 现场只测“事件开始执行”的时间不够直观：真正伤人的是主线程已排队时，
             // 订单事件要等多久。这里用单次主线程成本 × 队列深度估算 P95；
             // 真实线上由 trace 统计，Demo 里明确标注“估算”。
@@ -339,15 +342,15 @@ final class RenderCaseViewController: LabBaseViewController {
     }
 
     private static func makeCandles() -> [Candle] {
-        var price = 68_000.0
-        return (0..<44).map { index in
+        var price = 68000.0
+        return (0 ..< 44).map { _ in
             let open = price
-            let close = max(1, open + Double.random(in: -260...300))
+            let close = max(1, open + Double.random(in: -260 ... 300))
             price = close
             return Candle(
                 open: open,
-                high: max(open, close) + Double.random(in: 0...180),
-                low: min(open, close) - Double.random(in: 0...180),
+                high: max(open, close) + Double.random(in: 0 ... 180),
+                low: min(open, close) - Double.random(in: 0 ... 180),
                 close: close
             )
         }
@@ -373,7 +376,10 @@ private final class CandleChartView: UIView {
         layer.borderColor = LabUI.cyan.withAlphaComponent(0.18).cgColor
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func setCandles(_ candles: [Candle]) {
         self.candles = candles
@@ -384,7 +390,7 @@ private final class CandleChartView: UIView {
         guard let context = UIGraphicsGetCurrentContext(), !candles.isEmpty else { return }
         context.setStrokeColor(UIColor.white.withAlphaComponent(0.05).cgColor)
         context.setLineWidth(0.5)
-        for index in 0..<5 {
+        for index in 0 ..< 5 {
             let y = rect.height * CGFloat(index) / 4
             context.move(to: CGPoint(x: 0, y: y))
             context.addLine(to: CGPoint(x: rect.width, y: y))

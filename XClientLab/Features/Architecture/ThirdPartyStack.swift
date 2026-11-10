@@ -73,9 +73,23 @@ enum ThirdPartyStack {
 private enum SelfCheckTarget: TargetType {
     case ping
 
-    var baseURL: URL { URL(string: "https://example.invalid")! }
-    var path: String { "/ping" }
-    var method: Moya.Method { .get }
-    var task: Moya.Task { .requestPlain }
-    var headers: [String: String]? { ["Accept": "application/json"] }
+    var baseURL: URL {
+        URL(string: "https://example.invalid")!
+    }
+
+    var path: String {
+        "/ping"
+    }
+
+    var method: Moya.Method {
+        .get
+    }
+
+    var task: Moya.Task {
+        .requestPlain
+    }
+
+    var headers: [String: String]? {
+        ["Accept": "application/json"]
+    }
 }

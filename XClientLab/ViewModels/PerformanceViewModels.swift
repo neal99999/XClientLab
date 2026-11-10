@@ -1,8 +1,6 @@
 import Combine
 import Foundation
 
-import Foundation
-
 /// Scenario 1.1 — deliberate main-thread stalls.
 ///
 /// All of the expensive work below is intentionally synchronous and on the
@@ -16,7 +14,9 @@ final class CPUStallViewModel: ObservableObject {
         case standard = 2
         case extreme = 3
 
-        var id: Int { rawValue }
+        var id: Int {
+            rawValue
+        }
 
         var title: String {
             switch self {
@@ -26,7 +26,9 @@ final class CPUStallViewModel: ObservableObject {
             }
         }
 
-        var passCount: Int { rawValue * 4 }
+        var passCount: Int {
+            rawValue * 4
+        }
     }
 
     struct StallPass: Identifiable {
@@ -104,7 +106,7 @@ final class CPUStallViewModel: ObservableObject {
         var localPasses: [StallPass] = []
         var localMatches = 0
 
-        for index in 0..<intensity.passCount {
+        for index in 0 ..< intensity.passCount {
             let passStart = CFAbsoluteTimeGetCurrent()
 
             // Deliberate anti-patterns:
@@ -130,7 +132,7 @@ final class CPUStallViewModel: ObservableObject {
                     index: index + 1,
                     durationMs: durationMs,
                     matchCount: localMatches,
-                    recordCount: 6_000
+                    recordCount: 6000
                 )
             )
             // Update local state only. Touching @Published from inside this loop
@@ -167,7 +169,7 @@ final class CPUStallViewModel: ObservableObject {
         phase = "BUILD PAYLOAD"
         console.log("构建 6,000 条模拟行情记录（约 3MB JSON）…", level: .debug)
         let start = CFAbsoluteTimeGetCurrent()
-        let data = CPUStallPayload.makeData(records: 6_000)
+        let data = CPUStallPayload.makeData(records: 6000)
         // swiftlint:disable:next optional_data_string_conversion - 演示要的是「永不失败」的解码，便于量化耗时
         let text = String(decoding: data, as: UTF8.self)
         let elapsed = (CFAbsoluteTimeGetCurrent() - start) * 1000
@@ -186,9 +188,9 @@ enum CPUStallPayload {
         var pieces: [String] = []
         pieces.reserveCapacity(records)
         let symbols = ["BTC-USDT", "ETH-USDT", "SOL-USDT", "BNB-USDT"]
-        for index in 0..<records {
+        for index in 0 ..< records {
             let symbol = symbols[index % symbols.count]
-            let price = 20_000 + (index % 4_000)
+            let price = 20000 + (index % 4000)
             let email = "desk\(index % 97)@market-lab.example"
             pieces.append(
                 #"{"id":\#(index),"symbol":"\#(symbol)","price":\#(price),"email":"\#(email)","note":"order-book-snapshot-\#(index)"}"#
@@ -215,7 +217,9 @@ final class AllocationStormViewModel: NSObject, ObservableObject {
         case standard = 2
         case extreme = 3
 
-        var id: Int { rawValue }
+        var id: Int {
+            rawValue
+        }
 
         var title: String {
             switch self {
@@ -262,7 +266,7 @@ final class AllocationStormViewModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        feed = MarketRow.makeFeed(count: 5_000)
+        feed = MarketRow.makeFeed(count: 5000)
         footprintMB = MemoryProbe.footprintMB()
     }
 
@@ -327,7 +331,7 @@ final class AllocationStormViewModel: NSObject, ObservableObject {
         // 1. Large, short-lived byte buffers. Held for several ticks so that the
         //    footprint climbs in a staircase instead of staying flat.
         var allocatedThisTick = 0
-        for _ in 0..<intensity.buffersPerTick {
+        for _ in 0 ..< intensity.buffersPerTick {
             pool.append([UInt8](repeating: 0xAB, count: bufferBytes))
             allocatedThisTick += bufferBytes
         }
@@ -340,11 +344,11 @@ final class AllocationStormViewModel: NSObject, ObservableObject {
         //    objects in addition to the big buffers.
         var transient: [QuoteTick] = []
         transient.reserveCapacity(600)
-        for index in 0..<600 {
+        for index in 0 ..< 600 {
             transient.append(
                 QuoteTick(
                     symbol: Self.symbols[index % Self.symbols.count],
-                    price: Double(20_000 + (tickCount * 13 + index) % 5_000),
+                    price: Double(20000 + (tickCount * 13 + index) % 5000),
                     venue: "venue-\(index % 12)"
                 )
             )
@@ -403,11 +407,11 @@ struct MarketRow: Identifiable {
 
     static func makeFeed(count: Int) -> [MarketRow] {
         let symbols = ["BTC-USDT", "ETH-USDT", "SOL-USDT", "BNB-USDT", "XRP-USDT", "DOGE-USDT", "ADA-USDT", "AVAX-USDT"]
-        return (0..<count).map { index in
+        return (0 ..< count).map { index in
             MarketRow(
                 id: index,
                 symbol: symbols[index % symbols.count],
-                price: 20_000 + Double((index * 37) % 45_000),
+                price: 20000 + Double((index * 37) % 45000),
                 change: Double((index * 17) % 900) / 100 - 4.5,
                 size: (index * 91) % 100_000
             )
@@ -420,7 +424,7 @@ enum AllocationStormEngine {
     /// the long list therefore produces a steady stream of short-lived
     /// allocations even before the timer storm is started.
     static func rowChecksum(_ index: Int) -> Int {
-        let payload = Data(repeating: UInt8(index & 0xFF), count: 2_048)
+        let payload = Data(repeating: UInt8(index & 0xFF), count: 2048)
         return payload.reduce(0) { ($0 &* 31 &+ Int($1)) & 0xFFFF }
     }
 }

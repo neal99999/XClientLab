@@ -30,8 +30,14 @@ final class RaceScenarioViewController: LabBaseViewController {
         selected: 1
     )
 
-    init() { super.init(accent: LabUI.cyan) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.cyan)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -140,11 +146,18 @@ final class RaceScenarioViewController: LabBaseViewController {
             .store(in: &cancellables)
     }
 
-    @objc private func runTapped() { viewModel.run() }
-    @objc private func resetTapped() { viewModel.reset() }
+    @objc private func runTapped() {
+        viewModel.run()
+    }
+
+    @objc private func resetTapped() {
+        viewModel.reset()
+    }
+
     @objc private func modeChanged() {
         viewModel.mode = RaceScenarioViewModel.Mode.allCases[modeControl.selectedSegmentIndex]
     }
+
     @objc private func scaleChanged() {
         viewModel.scale = RaceScenarioViewModel.Scale.allCases[scaleControl.selectedSegmentIndex]
     }

@@ -62,7 +62,10 @@ final class LabCardView: UIView {
         }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     @discardableResult
     func add(_ view: UIView) -> LabCardView {
@@ -101,7 +104,10 @@ final class LabTagView: UIView {
         }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 func labTagRow(_ tags: [String], color: UIColor, spacing: CGFloat = 6) -> UIStackView {
@@ -158,7 +164,10 @@ final class LabSectionHeaderView: UIView {
         row.snp.makeConstraints { make in make.edges.equalToSuperview() }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Screen title / module header
@@ -180,7 +189,10 @@ final class LabScreenTitleView: UIView {
         stack.snp.makeConstraints { make in make.edges.equalToSuperview() }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 final class LabModuleHeaderView: UIView {
@@ -237,7 +249,10 @@ final class LabModuleHeaderView: UIView {
         stack.snp.makeConstraints { make in make.edges.equalToSuperview().inset(18) }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Metrics
@@ -270,17 +285,26 @@ final class LabMetricTileView: UIView {
         let stack = labStack(spacing: 6)
         stack.addArrangedSubview(labLabel(label.uppercased(), size: 9, weight: .semibold, color: LabUI.textTertiary, mono: true, lines: 1))
         stack.addArrangedSubview(valueRow)
-        if detail != nil { stack.addArrangedSubview(detailLabel) }
+        if detail != nil {
+            stack.addArrangedSubview(detailLabel)
+        }
         addSubview(stack)
         stack.snp.makeConstraints { make in make.edges.equalToSuperview().inset(12) }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func update(value: String, detail: String? = nil, color: UIColor? = nil) {
         valueLabel.text = value
-        if let detail { detailLabel.text = detail }
-        if let color { valueLabel.textColor = color }
+        if let detail {
+            detailLabel.text = detail
+        }
+        if let color {
+            valueLabel.textColor = color
+        }
     }
 }
 
@@ -339,7 +363,10 @@ final class LabCalloutView: UIView {
         }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Code
@@ -363,7 +390,10 @@ final class LabCodeBlockView: UIView {
         stack.snp.makeConstraints { make in make.edges.equalToSuperview().inset(12) }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Buttons
@@ -398,7 +428,10 @@ final class LabButton: UIButton {
         heightAnchor.constraint(greaterThanOrEqualToConstant: 40).isActive = true
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     private func applyStyle() {
         switch style {
@@ -440,7 +473,10 @@ final class LabSparklineView: UIView {
         isOpaque = false
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func update(_ values: [Double]) {
         self.values = Array(values.suffix(64))
@@ -454,7 +490,11 @@ final class LabSparklineView: UIView {
         for (index, value) in values.enumerated() {
             let x = CGFloat(index) * step
             let y = rect.maxY - CGFloat(value / maxValue) * (rect.height - 4) - 2
-            if index == 0 { path.move(to: CGPoint(x: x, y: y)) } else { path.addLine(to: CGPoint(x: x, y: y)) }
+            if index == 0 {
+                path.move(to: CGPoint(x: x, y: y))
+            } else {
+                path.addLine(to: CGPoint(x: x, y: y))
+            }
         }
         color.setStroke()
         path.lineWidth = 1.8
@@ -477,7 +517,7 @@ final class LabMiniBarView: UIView {
     private var fraction: CGFloat = 0
 
     init(color: UIColor = LabUI.cyan) {
-        self.fillColor = color
+        fillColor = color
         super.init(frame: .zero)
         track.backgroundColor = UIColor.white.withAlphaComponent(0.07)
         track.layer.cornerRadius = 3
@@ -492,7 +532,10 @@ final class LabMiniBarView: UIView {
         heightAnchor.constraint(equalToConstant: 6).isActive = true
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func setProgress(_ value: Double) {
         fraction = CGFloat(max(0, min(1, value)))
@@ -513,7 +556,10 @@ final class LabStatusDotView: UIView {
         snp.makeConstraints { make in make.width.height.equalTo(size) }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Timeline
@@ -549,10 +595,15 @@ final class LabTimelineRowView: UIView {
             make.leading.equalToSuperview().offset(22)
             make.trailing.top.bottom.equalToSuperview()
         }
-        if isLast { rail.isHidden = true }
+        if isLast {
+            rail.isHidden = true
+        }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - Console
@@ -620,9 +671,12 @@ final class LabConsoleView: UIView, UITableViewDataSource {
             }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         store.entries.count
     }
 
@@ -657,7 +711,10 @@ private final class LabLogCell: UITableViewCell {
         }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func configure(_ entry: LogEntry) {
         time.text = entry.formattedTime
@@ -715,7 +772,10 @@ final class LabHitchReadoutView: UIView {
             }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     deinit { cancellable?.cancel() }
 }
@@ -788,10 +848,20 @@ final class LabScenarioCard: UIButton {
         addTarget(self, action: #selector(touchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel, .touchDragExit])
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
-    @objc private func forwardTap() { sendActions(for: .touchUpInside) }
+    @objc private func forwardTap() {
+        sendActions(for: .touchUpInside)
+    }
 
-    @objc private func touchDown() { alpha = 0.7 }
-    @objc private func touchUp() { alpha = 1 }
+    @objc private func touchDown() {
+        alpha = 0.7
+    }
+
+    @objc private func touchUp() {
+        alpha = 1
+    }
 }
