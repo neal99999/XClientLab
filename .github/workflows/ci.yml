@@ -29,11 +29,13 @@ jobs:
       SCHEME: XClientLab
       # 快照基线在本地 iOS 27.1 runtime 录制（见 README「验证结果」），CI 必须用同一
       # runtime 渲染才能逐像素一致（27.2 上 SF Symbol/渐变类组件有像素差异，
-      # 已在 run #4 验证：3 个含系统资源的快照挂、纯文本的过）。不指定机型，
-      # 由 xcodebuild 在该 runtime 下挑可用设备（快照用固定 360x220 的
-      # ViewImageConfig，机型无关）。若镜像滚动后 27.1 runtime 被移除，
-      # 需显式重录基线并把这里改成对应 OS。
-      DESTINATION: "platform=iOS Simulator,OS=27.1"
+      # 已在 run #4 验证：3 个含系统资源的快照挂、纯文本的过）。
+      # 27.1 runtime 上的预装机型不可靠（run #5 exit 70：OS=27.1 不指定机型时
+      # xcodebuild 匹配不到 destination），所以下面的步骤会在 27.1 runtime 上
+      # 显式创建一台标准 iPhone 17，destination 按名字钉死。快照用固定 360x220 的
+      # ViewImageConfig，机型不影响像素。若日后 27.1 runtime 被镜像移除，
+      # 需显式重录基线并把这里的 OS 改成对应版本。
+      DESTINATION: "platform=iOS Simulator,name=CI-iPhone-17-iOS-27-1,OS=27.1"
 
     steps:
       - name: Checkout Repository
@@ -53,6 +55,24 @@ jobs:
             fi
             echo "Xcode 27.1 not found, falling back to $latest"
             echo "DEVELOPER_DIR=$latest/Contents/Developer" >> "$GITHUB_ENV"
+          fi
+
+      - name: Ensure iOS 27.1 device exists
+        run: |
+          set -euo pipefail
+          if ! xcrun simctl list runtimes | grep -q "iOS 27.1"; then
+            echo "::error::iOS 27.1 runtime not installed on this runner; snapshot baselines were recorded on 27.1."
+            xcrun simctl list runtimes
+            exit 1
+          fi
+          # 幂等：先删旧的同名设备再创建
+          xcrun simctl delete "CI-iPhone-17-iOS-27-1" 2>/dev/null || true
+          if ! xcrun simctl create "CI-iPhone-17-iOS-27-1" \
+              "com.apple.CoreSimulator.SimDeviceType.iPhone-17" \
+              "com.apple.CoreSimulator.SimRuntime.iOS-27-1"; then
+            echo "::error::simctl create failed; available iPhone device types:"
+            xcrun simctl list devicetypes | grep -E "iPhone-1[678]" || true
+            exit 1
           fi
 
       - name: Show Toolchain
