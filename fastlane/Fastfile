@@ -3,16 +3,33 @@ default_platform(:ios)
 platform :ios do
   desc "Run XClientLab unit, snapshot and UI tests via fastlane scan"
   lane :test do
+    destination = ENV.fetch("SIMULATOR_DESTINATION") {
+      "platform=iOS Simulator,name=#{ENV.fetch("SIMULATOR_NAME", "iPhone 18 Pro Max")}"
+    }
+
+    # 分两次 scan：Xcode 26 在合并 unit + UI 测试时偶发 test bundle
+    # 加载竞争（Unable to initialize test bundle / 600s diagnostics timeout）。
     scan(
       project: "XClientLab.xcodeproj",
       scheme: "XClientLab",
-      destination: ENV.fetch("SIMULATOR_DESTINATION") {
-        "platform=iOS Simulator,name=#{ENV.fetch("SIMULATOR_NAME", "iPhone 18 Pro Max")}"
-      },
+      destination: destination,
       derived_data_path: "DerivedData",
-      output_directory: "fastlane/test_output",
+      output_directory: "fastlane/test_output/unit",
       result_bundle: true,
       clean: false,
+      only_testing: ["XClientLabTests"],
+      xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution"
+    )
+
+    scan(
+      project: "XClientLab.xcodeproj",
+      scheme: "XClientLab",
+      destination: destination,
+      derived_data_path: "DerivedData",
+      output_directory: "fastlane/test_output/ui",
+      result_bundle: true,
+      clean: false,
+      only_testing: ["XClientLabUITests"],
       xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution"
     )
   end
