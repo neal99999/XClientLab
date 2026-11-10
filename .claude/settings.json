@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git ls-files:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(xcrun simctl list:*)",
+      "Bash(xcrun xctrace list:*)",
+      "Bash(xcodebuild -list:*)"
+    ],
+    "deny": [
+      "Read(./MCIBIT/fastlane/.env.default)",
+      "Read(./**/*.p8)",
+      "Read(./**/*.p12)",
+      "Bash(git push --force:*)"
+    ]
+  }
+}

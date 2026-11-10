@@ -1,0 +1,44 @@
+
+name: iOS CI Workflow
+
+# 触发条件：当向 main 或 develop 分支提交 Pull Request，或者直接 Push 时触发
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build-and-test:
+    name: Build and Run Tests
+    # 指定运行环境为 macOS 14 (包含最新的 Xcode 环境)
+    runs-on: macos-14
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. 指定 Xcode 版本 (根据项目需求调整，例如 Xcode 15)
+      - name: Select Xcode Version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.2'
+
+      # 3. 缓存 SPM 或 CocoaPods 依赖，加速构建
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      # 4. 运行测试（支持包含像 snapshot-testing 的单元/快照测试）
+      - name: Run Unit & Snapshot Tests
+        run: |
+          xcodebuild test \
+            -scheme "XClientLab" \
+            -destination "platform=iOS Simulator,name=iPhone 15" \
+            -enableCodeCoverage YES \
+            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
