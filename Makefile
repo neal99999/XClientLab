@@ -13,7 +13,7 @@ XCODEBUILD   ?= xcodebuild -project $(PROJECT) -scheme $(SCHEME) \
 SWIFTLINT    ?= swiftlint
 SWIFTFORMAT  ?= swiftformat
 
-.PHONY: help resolve build test ci lint format format-check install-hooks clean
+.PHONY: help resolve build test ci lint format format-check install-hooks verify clean-spm clean
 
 help:
 	@echo "make resolve       解析/更新 SPM 依赖（生成 Package.resolved）"
@@ -23,7 +23,9 @@ help:
 	@echo "make lint          SwiftLint 静态检查（与构建期插件同配置）"
 	@echo "make format        SwiftFormat 全量格式化 XClientLab/"
 	@echo "make format-check  SwiftFormat 只检查不修改（CI 用）"
+	@echo "make verify        联合执行代码静态检查与格式验证"
 	@echo "make install-hooks 配置 Git 预提交钩子（自动运行 SwiftLint）"
+	@echo "make clean-spm     清理 SPM 依赖缓存"
 	@echo "make clean         清理 $(DERIVED)"
 
 resolve:
@@ -51,6 +53,13 @@ install-hooks:
 	git config core.hooksPath .githooks
 	chmod +x .githooks/*
 	@echo "✅ Git hooks 已成功配置到 .githooks/ 目录！"
+
+verify: lint format-check
+	@echo "✅ 代码规范与格式校验全部通过！"
+
+clean-spm:
+	rm -rf "$(DERIVED)/SourcePackages"
+	@echo "✅ SPM 缓存已清理，可执行 make resolve 重新解析。"
 
 clean:
 	rm -rf "$(DERIVED)"
