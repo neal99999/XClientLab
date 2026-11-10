@@ -1,0 +1,6 @@
+"profile.card.title" = "PROFILE / 用户档案";
+"profile.card.subtitle" = "数据来自 LabFeatureKit 的资源包，不经过主 App";
+"profile.card.loading" = "正在从 Bundle.module 读取资源…";
+"profile.card.loaded" = "已从资源包解码 UserProfile（JSON → Codable）";
+"profile.card.failed" = "资源读取失败";
+"profile.card.source" = "RESOURCE";

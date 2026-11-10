@@ -1,0 +1,20 @@
+[
+  {
+    "id": "u-001",
+    "displayName": "林一",
+    "role": "iOS Engineer · 模块化 / 性能",
+    "email": "linyi@xclientlab.dev"
+  },
+  {
+    "id": "u-002",
+    "displayName": "陈默",
+    "role": "Tech Lead · 架构评审",
+    "email": "chenmo@xclientlab.dev"
+  },
+  {
+    "id": "u-003",
+    "displayName": "周航",
+    "role": "Platform · SPM 基建",
+    "email": "zhouhang@xclientlab.dev"
+  }
+]

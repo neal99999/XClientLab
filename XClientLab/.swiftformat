@@ -1,0 +1,20 @@
+# SwiftFormat 0.64.x 配置
+#
+# 说明：SwiftFormat 官方只提供 command plugin（仅能格式化 Package 内部 target），
+# 无法作为 Xcode app target 的 build tool plugin 运行，因此本项目的格式化走 CLI：
+#   make format        # 全量格式化 XClientLab/
+#   make format-check  # 只检查（CI 用）
+#
+# 现有代码尚未做一次性全量格式化，首次执行 `make format` 会产生一个纯格式 diff，
+# 建议作为独立提交合入。SwiftLint 的 build 期检查已先行生效。
+
+--swiftversion 5.0
+--indent 4
+--maxwidth 160
+--wraparguments before-first
+--wrapparameters before-first
+--closingparen balanced
+--importgrouping testable-bottom
+--exclude DerivedData,.build
+# SwiftLint 默认禁止尾逗号；关掉 SwiftFormat 的 trailingCommas，避免两个工具互相改写。
+--disable trailingCommas

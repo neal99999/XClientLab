@@ -1,0 +1,714 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 110;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000010000000000000003 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = A10000010000000000000002 /* Alamofire */; };
+		A10000020000000000000003 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = A10000020000000000000002 /* Kingfisher */; };
+		A10000030000000000000003 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = A10000030000000000000002 /* Moya */; };
+		A10000040000000000000003 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000002 /* SnapKit */; };
+		A10000050000000000000003 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = A10000050000000000000002 /* Starscream */; };
+		A20000010000000000000003 /* LabContracts in Frameworks */ = {isa = PBXBuildFile; productRef = A20000010000000000000002 /* LabContracts */; };
+		A20000020000000000000003 /* LabFeatureKit in Frameworks */ = {isa = PBXBuildFile; productRef = A20000020000000000000002 /* LabFeatureKit */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		081CDFA130A299DD001027C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 081CDF8230A299DC001027C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 081CDF8930A299DC001027C9;
+			remoteInfo = XClientLab;
+		};
+		081CDFAB30A299DD001027C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 081CDF8230A299DC001027C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 081CDF8930A299DC001027C9;
+			remoteInfo = XClientLab;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		081CDF8A30A299DC001027C9 /* XClientLab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XClientLab.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		081CDFA030A299DD001027C9 /* XClientLabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XClientLabTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		081CDFAA30A299DD001027C9 /* XClientLabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = XClientLabUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		081CDFB030A299DD001027C9 /* Exceptions for "XClientLab" folder in "XClientLab" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 081CDF8930A299DC001027C9 /* XClientLab */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		081CDF8C30A299DC001027C9 /* XClientLab */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				081CDFB030A299DD001027C9 /* Exceptions for "XClientLab" folder in "XClientLab" target */,
+			);
+			path = XClientLab;
+			sourceTree = "<group>";
+		};
+		081CDFA330A299DD001027C9 /* XClientLabTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = XClientLabTests;
+			sourceTree = "<group>";
+		};
+		081CDFAD30A299DD001027C9 /* XClientLabUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = XClientLabUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		081CDF8730A299DC001027C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+				A10000010000000000000003 /* Alamofire in Frameworks */,
+				A10000020000000000000003 /* Kingfisher in Frameworks */,
+				A10000030000000000000003 /* Moya in Frameworks */,
+				A10000040000000000000003 /* SnapKit in Frameworks */,
+				A10000050000000000000003 /* Starscream in Frameworks */,
+				A20000010000000000000003 /* LabContracts in Frameworks */,
+				A20000020000000000000003 /* LabFeatureKit in Frameworks */,
+			);
+		};
+		081CDF9D30A299DD001027C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		081CDFA730A299DD001027C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		081CDF8130A299DC001027C9 = {
+			isa = PBXGroup;
+			children = (
+				081CDF8C30A299DC001027C9 /* XClientLab */,
+				081CDFA330A299DD001027C9 /* XClientLabTests */,
+				081CDFAD30A299DD001027C9 /* XClientLabUITests */,
+				081CDF8B30A299DC001027C9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		081CDF8B30A299DC001027C9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				081CDF8A30A299DC001027C9 /* XClientLab.app */,
+				081CDFA030A299DD001027C9 /* XClientLabTests.xctest */,
+				081CDFAA30A299DD001027C9 /* XClientLabUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		081CDF8930A299DC001027C9 /* XClientLab */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 081CDFB130A299DD001027C9 /* Build configuration list for PBXNativeTarget "XClientLab" */;
+			buildPhases = (
+				081CDF8630A299DC001027C9 /* Sources */,
+				081CDF8730A299DC001027C9 /* Frameworks */,
+				081CDF8830A299DC001027C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000060000000000000004 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				081CDF8C30A299DC001027C9 /* XClientLab */,
+			);
+			name = XClientLab;
+			packageProductDependencies = (
+				A20000010000000000000002 /* LabContracts */,
+				A20000020000000000000002 /* LabFeatureKit */,
+				A10000010000000000000002 /* Alamofire */,
+				A10000020000000000000002 /* Kingfisher */,
+				A10000030000000000000002 /* Moya */,
+				A10000040000000000000002 /* SnapKit */,
+				A10000050000000000000002 /* Starscream */,
+			);
+			productName = XClientLab;
+			productReference = 081CDF8A30A299DC001027C9 /* XClientLab.app */;
+			productType = "com.apple.product-type.application";
+		};
+		081CDF9F30A299DD001027C9 /* XClientLabTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 081CDFB630A299DD001027C9 /* Build configuration list for PBXNativeTarget "XClientLabTests" */;
+			buildPhases = (
+				081CDF9C30A299DD001027C9 /* Sources */,
+				081CDF9D30A299DD001027C9 /* Frameworks */,
+				081CDF9E30A299DD001027C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				081CDFA230A299DD001027C9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				081CDFA330A299DD001027C9 /* XClientLabTests */,
+			);
+			name = XClientLabTests;
+			productName = XClientLabTests;
+			productReference = 081CDFA030A299DD001027C9 /* XClientLabTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		081CDFA930A299DD001027C9 /* XClientLabUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 081CDFB930A299DD001027C9 /* Build configuration list for PBXNativeTarget "XClientLabUITests" */;
+			buildPhases = (
+				081CDFA630A299DD001027C9 /* Sources */,
+				081CDFA730A299DD001027C9 /* Frameworks */,
+				081CDFA830A299DD001027C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				081CDFAC30A299DD001027C9 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				081CDFAD30A299DD001027C9 /* XClientLabUITests */,
+			);
+			name = XClientLabUITests;
+			productName = XClientLabUITests;
+			productReference = 081CDFAA30A299DD001027C9 /* XClientLabUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		081CDF8230A299DC001027C9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2710;
+				LastUpgradeCheck = 2710;
+				TargetAttributes = {
+					081CDF8930A299DC001027C9 = {
+						CreatedOnToolsVersion = 27.1;
+					};
+					081CDF9F30A299DD001027C9 = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 081CDF8930A299DC001027C9;
+					};
+					081CDFA930A299DD001027C9 = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = 081CDF8930A299DC001027C9;
+					};
+				};
+			};
+			buildConfigurationList = 081CDF8530A299DC001027C9 /* Build configuration list for PBXProject "XClientLab" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 081CDF8130A299DC001027C9;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A20000010000000000000001 /* XCLocalSwiftPackageReference "Packages/LabContracts" */,
+				A20000020000000000000001 /* XCLocalSwiftPackageReference "Packages/LabFeatureKit" */,
+				A10000010000000000000001 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				A10000020000000000000001 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				A10000030000000000000001 /* XCRemoteSwiftPackageReference "Moya" */,
+				A10000040000000000000001 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				A10000050000000000000001 /* XCRemoteSwiftPackageReference "Starscream" */,
+				A10000060000000000000001 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
+				A10000070000000000000001 /* XCRemoteSwiftPackageReference "SwiftFormat" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 081CDF8B30A299DC001027C9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				081CDF8930A299DC001027C9 /* XClientLab */,
+				081CDF9F30A299DD001027C9 /* XClientLabTests */,
+				081CDFA930A299DD001027C9 /* XClientLabUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		081CDF8830A299DC001027C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		081CDF9E30A299DD001027C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		081CDFA830A299DD001027C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		081CDF8630A299DC001027C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		081CDF9C30A299DD001027C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+		081CDFA630A299DD001027C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		081CDFA230A299DD001027C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 081CDF8930A299DC001027C9 /* XClientLab */;
+			targetProxy = 081CDFA130A299DD001027C9 /* PBXContainerItemProxy */;
+		};
+		081CDFAC30A299DD001027C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 081CDF8930A299DC001027C9 /* XClientLab */;
+			targetProxy = 081CDFAB30A299DD001027C9 /* PBXContainerItemProxy */;
+		};
+		A10000060000000000000004 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			productRef = A10000060000000000000002 /* SwiftLintBuildToolPlugin */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		081CDFB230A299DD001027C9 /* Debug configuration for PBXNativeTarget "XClientLab" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = XClientLab/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "XClientLab · iOS interview sandbox";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = e88ebfa25316fd8c.XClientLab;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		081CDFB330A299DD001027C9 /* Release configuration for PBXNativeTarget "XClientLab" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = XClientLab/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "XClientLab · iOS interview sandbox";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = e88ebfa25316fd8c.XClientLab;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		081CDFB430A299DD001027C9 /* Debug configuration for PBXProject "XClientLab" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		081CDFB530A299DD001027C9 /* Release configuration for PBXProject "XClientLab" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		081CDFB730A299DD001027C9 /* Debug configuration for PBXNativeTarget "XClientLabTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = e88ebfa25316fd8c.XClientLabTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/XClientLab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/XClientLab";
+			};
+			name = Debug;
+		};
+		081CDFB830A299DD001027C9 /* Release configuration for PBXNativeTarget "XClientLabTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = e88ebfa25316fd8c.XClientLabTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/XClientLab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/XClientLab";
+			};
+			name = Release;
+		};
+		081CDFBA30A299DD001027C9 /* Debug configuration for PBXNativeTarget "XClientLabUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = e88ebfa25316fd8c.XClientLabUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = XClientLab;
+			};
+			name = Debug;
+		};
+		081CDFBB30A299DD001027C9 /* Release configuration for PBXNativeTarget "XClientLabUITests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = J2Y83LQZMT;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = e88ebfa25316fd8c.XClientLabUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = XClientLab;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		081CDF8530A299DC001027C9 /* Build configuration list for PBXProject "XClientLab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				081CDFB430A299DD001027C9 /* Debug configuration for PBXProject "XClientLab" */,
+				081CDFB530A299DD001027C9 /* Release configuration for PBXProject "XClientLab" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		081CDFB130A299DD001027C9 /* Build configuration list for PBXNativeTarget "XClientLab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				081CDFB230A299DD001027C9 /* Debug configuration for PBXNativeTarget "XClientLab" */,
+				081CDFB330A299DD001027C9 /* Release configuration for PBXNativeTarget "XClientLab" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		081CDFB630A299DD001027C9 /* Build configuration list for PBXNativeTarget "XClientLabTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				081CDFB730A299DD001027C9 /* Debug configuration for PBXNativeTarget "XClientLabTests" */,
+				081CDFB830A299DD001027C9 /* Release configuration for PBXNativeTarget "XClientLabTests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		081CDFB930A299DD001027C9 /* Build configuration list for PBXNativeTarget "XClientLabUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				081CDFBA30A299DD001027C9 /* Debug configuration for PBXNativeTarget "XClientLabUITests" */,
+				081CDFBB30A299DD001027C9 /* Release configuration for PBXNativeTarget "XClientLabUITests" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A20000010000000000000001 /* XCLocalSwiftPackageReference "Packages/LabContracts" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LabContracts;
+		};
+		A20000020000000000000001 /* XCLocalSwiftPackageReference "Packages/LabFeatureKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LabFeatureKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A10000010000000000000001 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.12.2;
+			};
+		};
+		A10000020000000000000001 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.15.0;
+			};
+		};
+		A10000030000000000000001 /* XCRemoteSwiftPackageReference "Moya" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Moya/Moya.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 15.0.3;
+			};
+		};
+		A10000040000000000000001 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
+		A10000050000000000000001 /* XCRemoteSwiftPackageReference "Starscream" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/daltoniam/Starscream.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.8;
+			};
+		};
+		A10000060000000000000001 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimplyDanny/SwiftLintPlugins.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.65.1;
+			};
+		};
+		A10000070000000000000001 /* XCRemoteSwiftPackageReference "SwiftFormat" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nicklockwood/SwiftFormat.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.64.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10000010000000000000002 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000010000000000000001 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		A10000020000000000000002 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000020000000000000001 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
+		A10000030000000000000002 /* Moya */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000030000000000000001 /* XCRemoteSwiftPackageReference "Moya" */;
+			productName = Moya;
+		};
+		A10000040000000000000002 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000040000000000000001 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		A10000050000000000000002 /* Starscream */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000050000000000000001 /* XCRemoteSwiftPackageReference "Starscream" */;
+			productName = Starscream;
+		};
+		A10000060000000000000002 /* SwiftLintBuildToolPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000060000000000000001 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
+			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		A20000010000000000000002 /* LabContracts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A20000010000000000000001 /* XCLocalSwiftPackageReference "Packages/LabContracts" */;
+			productName = LabContracts;
+		};
+		A20000020000000000000002 /* LabFeatureKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A20000020000000000000001 /* XCLocalSwiftPackageReference "Packages/LabFeatureKit" */;
+			productName = LabFeatureKit;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 081CDF8230A299DC001027C9 /* Project object */;
+	validationLevel = 1;
+}

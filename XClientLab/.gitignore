@@ -1,0 +1,22 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+*.xcscmblueprint
+xcuserdata/
+*.xccheckout
+*.moved-aside
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Demo artifacts / screenshots
+/tmp/xclientlab-shots/
+*.xcresult
+
+# Local automation output copied out of the simulator
+XClientLabTests/Generated/

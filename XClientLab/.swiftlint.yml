@@ -1,0 +1,70 @@
+# SwiftLint 0.65.x —— 项目唯一配置入口（Build Tool Plugin 与 CLI 共用）
+#
+# 设计原则：
+# 1. 结构性规则（行宽 / 文件长度 / 函数长度 / 圈复杂度）按本项目实际体量放宽，
+#    保证 SwiftLintBuildToolPlugin 在现有代码上 `0 error`，不会阻断构建。
+# 2. 正确性规则（force_try / optional_data_string_conversion 等）保持启用，
+#    但降级为 warning：先看见，再决定是否整改，不阻断构建。
+# 3. 新代码仍受约束：超出阈值会立刻出现在构建日志里。
+
+included:
+  - XClientLab
+
+excluded:
+  - XClientLabTests
+  - XClientLabUITests
+  - DerivedData
+  - .build
+  - Docs
+
+# MARK: - 结构性阈值（按现有代码调宽）
+
+line_length:
+  warning: 160
+  error: 300
+  ignores_comments: true
+  ignores_urls: true
+  ignores_function_declarations: false
+
+file_length:
+  warning: 800
+  error: 1200
+  ignore_comment_only_lines: true
+
+function_body_length:
+  warning: 150
+  error: 220
+
+type_body_length:
+  warning: 320
+  error: 520
+
+cyclomatic_complexity:
+  warning: 15
+  error: 25
+
+function_parameter_count:
+  warning: 7
+  error: 10
+
+# MARK: - 标识符（允许数学/坐标类短名，如 x / y）
+
+identifier_name:
+  min_length: 1
+  max_length: 50
+
+type_name:
+  min_length: 3
+  max_length: 50
+
+# MARK: - 正确性规则降级为 warning（不阻断构建）
+
+force_cast: warning
+force_try:
+  severity: warning
+
+# MARK: - 已知的基线豁免（现有演示代码，整改收益低）
+
+disabled_rules:
+  - todo                       # 面试 sandbox 里故意保留 TODO/演示占位
+  - trailing_whitespace        # 与 SwiftFormat 的 trailingSpace 规则重叠，交给格式化处理

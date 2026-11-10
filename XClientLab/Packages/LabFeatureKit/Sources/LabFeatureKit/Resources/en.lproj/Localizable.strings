@@ -1,0 +1,6 @@
+"profile.card.title" = "PROFILE / USER CARD";
+"profile.card.subtitle" = "Data ships inside LabFeatureKit, not the main app";
+"profile.card.loading" = "Reading from Bundle.module…";
+"profile.card.loaded" = "Decoded from bundled JSON into Codable";
+"profile.card.failed" = "Resource load failed";
+"profile.card.source" = "RESOURCE";
