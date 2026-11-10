@@ -67,7 +67,7 @@ final class ConsistencyCaseViewController: LabBaseViewController {
         card.add(labMetricRow([
             LabMetricTileView(label: "PING", value: "5", unit: "s", detail: "应用层心跳", color: LabUI.cyan),
             LabMetricTileView(label: "NO DATA", value: "10", unit: "s", detail: "判定死链", color: LabUI.amber),
-            LabMetricTileView(label: "HEAL", value: "<3", unit: "s", detail: "智能重连", color: LabUI.mint),
+            LabMetricTileView(label: "HEAL", value: "<3", unit: "s", detail: "智能重连", color: LabUI.mint)
         ]))
         return card
     }
@@ -153,7 +153,7 @@ final class ConsistencyCaseViewController: LabBaseViewController {
         card.add(labMetricRow([
             LabMetricTileView(label: "SELF HEAL", value: "<3", unit: "s", detail: "电梯 / 切网", color: LabUI.mint),
             LabMetricTileView(label: "ROLLBACK", value: "0", unit: "次", detail: "订单状态倒流", color: LabUI.cyan),
-            LabMetricTileView(label: "LEDGER", value: "100", unit: "%", detail: "账实一致", color: LabUI.amber),
+            LabMetricTileView(label: "LEDGER", value: "100", unit: "%", detail: "账实一致", color: LabUI.amber)
         ]))
         return card
     }
