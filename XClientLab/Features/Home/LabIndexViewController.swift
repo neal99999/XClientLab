@@ -2,7 +2,7 @@ import SnapKit
 import UIKit
 
 /// 第二层入口：把 5 个模块收进一张“实验索引”，避免底部 tab 被模块数量撑满。
-/// 演示动线是「先看 AI 对照，再从这里进入真实实验」。
+/// 演示动线是「先讲交易所两个案例，再从这里按追问进入真实实验」。
 final class LabIndexViewController: LabBaseViewController {
     init() {
         super.init(accent: LabUI.cyan)
@@ -17,7 +17,7 @@ final class LabIndexViewController: LabBaseViewController {
         add(LabScreenTitleView(
             index: "LAB / ALL DRILLS",
             title: "选择实验模块",
-            subtitle: "5 个模块、10 个可运行场景。每个场景都能单独复现，也能从 AI 对照页一键跳入。",
+            subtitle: "5 个模块、10 个可运行场景。每个场景都能单独复现；面试官追问哪一层，就从这里进哪一层。",
             accent: LabUI.cyan
         ))
 
@@ -41,21 +41,21 @@ final class LabIndexViewController: LabBaseViewController {
         ))
         add(makeCard(
             index: "02",
-            title: "异常处理攻坚",
-            subtitle: "DispatchSource UAF 与 8 线程数据竞争，真实崩溃现场。",
-            tags: ["LLDB", "UAF", "TSan"],
-            accent: LabUI.coral,
-            identifier: "lab.exceptions",
-            destination: { ExceptionsHomeViewController() }
-        ))
-        add(makeCard(
-            index: "03",
             title: "交易所专项",
             subtitle: "弱网重连状态机与 83 条/秒盘口节流、差分更新。",
             tags: ["WebSocket", "Backoff", "Diff"],
             accent: LabUI.mint,
             identifier: "lab.exchange",
             destination: { ExchangeHomeViewController() }
+        ))
+        add(makeCard(
+            index: "03",
+            title: "异常处理攻坚",
+            subtitle: "DispatchSource UAF 与 8 线程数据竞争，真实崩溃现场。",
+            tags: ["LLDB", "UAF", "TSan"],
+            accent: LabUI.coral,
+            identifier: "lab.exceptions",
+            destination: { ExceptionsHomeViewController() }
         ))
         add(makeCard(
             index: "05",
@@ -69,7 +69,7 @@ final class LabIndexViewController: LabBaseViewController {
 
         add(LabCalloutView(
             kind: .insight,
-            message: "演示动线建议：AI 对照（30 秒）→ 性能/异常各 1 个真实场景（各 2 分钟）→ AI 工坊展示 Skill 与命令桩。不要把 10 个场景都跑一遍。"
+            message: "演示动线建议：交易所主线（8–10 分钟，两个案例各一遍）→ 追问时再进实验室（性能 / 异常各 1 个）→ AI 工坊展示 Skill 与命令桩。不要把 10 个场景都跑一遍。"
         ))
         add(LabCalloutView(
             kind: .ai,

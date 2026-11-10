@@ -102,7 +102,7 @@ XClientLabTests/__Snapshots__/ComponentSnapshotTests/
 CI 在 `.github/workflows/ci.yml`，直接调用 `xcodebuild test`（不经过 fastlane，少一层 Ruby 依赖）：
 
 - runner：`xcode-27`（macOS 27 + Xcode 27.0~27.2；本项目是 objectVersion 110 的 Xcode 27 工程格式，Xcode 26 打不开）
-- destination：`platform=iOS Simulator,name=CI-iPhone-17-iOS-27-1,OS=27.1`，与快照基线的录制 runtime 对齐。run #4 验证：27.2 runtime 上含 SF Symbol/渐变的 3 个快照有像素差异，纯文本的通过。workflow 会先在 27.1 runtime 上显式创建这台 iPhone 17（run #5 验证：27.1 runtime 的预装机型匹配不到 destination，exit 70）。快照用固定 360x220 的 ViewImageConfig，机型不影响像素
+- destination：由 workflow「Resolve simulator destination」步骤动态解析。首选在 iOS 27.1（快照基线录制 runtime）上用镜像里实际存在的 iPhone devicetype 新建设备；不行就退到 27.1/27.2 的预装设备按 name+OS 钉死。每个候选都先用 `xcodebuild -showdestinations` 验证可解析（run #5 exit 70：只写 OS 不写机型匹配不到；run #6：硬编码 iPhone-17 标识符在这个 preview 镜像上不存在）。快照比对已放宽 precision 0.97/0.98，27.2 兜底也能过；快照用固定 360x220 的 ViewImageConfig，机型不影响像素
 - 参数与本地一致：`CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution`
 - scheme 由 `XClientLab.xcodeproj/xcshareddata/xcschemes/XClientLab.xcscheme` 共享，CI checkout 后可直接使用
 - `.xcresult` 与测试日志通过 `actions/upload-artifact` 保留 7 天

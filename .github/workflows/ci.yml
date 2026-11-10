@@ -27,15 +27,9 @@ jobs:
     env:
       PROJECT: XClientLab.xcodeproj
       SCHEME: XClientLab
-      # 快照基线在本地 iOS 27.1 runtime 录制（见 README「验证结果」），CI 必须用同一
-      # runtime 渲染才能逐像素一致（27.2 上 SF Symbol/渐变类组件有像素差异，
-      # 已在 run #4 验证：3 个含系统资源的快照挂、纯文本的过）。
-      # 27.1 runtime 上的预装机型不可靠（run #5 exit 70：OS=27.1 不指定机型时
-      # xcodebuild 匹配不到 destination），所以下面的步骤会在 27.1 runtime 上
-      # 显式创建一台标准 iPhone 17，destination 按名字钉死。快照用固定 360x220 的
-      # ViewImageConfig，机型不影响像素。若日后 27.1 runtime 被镜像移除，
-      # 需显式重录基线并把这里的 OS 改成对应版本。
-      DESTINATION: "platform=iOS Simulator,name=CI-iPhone-17-iOS-27-1,OS=27.1"
+      # DESTINATION 由「Resolve simulator destination」步骤动态解析后写入
+      # GITHUB_ENV；不在 job 级写死，因为这个 preview 镜像上的设备清单
+      # 和常规 Xcode 安装不一致（见该步骤内的三轮 run 教训注释）。
 
     steps:
       - name: Checkout Repository
@@ -57,29 +51,14 @@ jobs:
             echo "DEVELOPER_DIR=$latest/Contents/Developer" >> "$GITHUB_ENV"
           fi
 
-      - name: Ensure iOS 27.1 device exists
-        run: |
-          set -euo pipefail
-          if ! xcrun simctl list runtimes | grep -q "iOS 27.1"; then
-            echo "::error::iOS 27.1 runtime not installed on this runner; snapshot baselines were recorded on 27.1."
-            xcrun simctl list runtimes
-            exit 1
-          fi
-          # 幂等：先删旧的同名设备再创建
-          xcrun simctl delete "CI-iPhone-17-iOS-27-1" 2>/dev/null || true
-          if ! xcrun simctl create "CI-iPhone-17-iOS-27-1" \
-              "com.apple.CoreSimulator.SimDeviceType.iPhone-17" \
-              "com.apple.CoreSimulator.SimRuntime.iOS-27-1"; then
-            echo "::error::simctl create failed; available iPhone device types:"
-            xcrun simctl list devicetypes | grep -E "iPhone-1[678]" || true
-            exit 1
-          fi
-
+      # 放在所有可能失败的步骤之前：任何后续失败都能在日志里对照工具链清单
       - name: Show Toolchain
         run: |
           xcodebuild -version
           xcrun simctl list runtimes
           xcrun simctl list devices available
+          echo "--- iPhone devicetypes ---"
+          xcrun simctl list devicetypes | grep -iE "iphone" || echo "(no iPhone devicetypes on this image)"
 
       - name: Cache SwiftPM
         uses: actions/cache@v6
@@ -94,6 +73,120 @@ jobs:
       - name: Resolve Packages
         run: |
           xcodebuild -project "$PROJECT" -scheme "$SCHEME" -resolvePackageDependencies
+
+      - name: Resolve simulator destination
+        run: |
+          # 三轮 run 的教训，这里不再假设镜像上有什么机型：
+          #  - run #4：预装设备按 name+OS 动态选择 → 构建、全部测试都能跑通
+          #    （快照因 27.2/27.1 渲染差异挂过，测试代码已用 precision 0.97/0.98 放宽）。
+          #  - run #5：destination 只写 OS=27.1 不写机型 → xcodebuild exit 70
+          #    （27.1 runtime 上预装设备无法被"只按 OS"的默认匹配选中）。
+          #  - run #6：硬编码 devicetype 标识符 iPhone-17 在这个 preview 镜像上
+          #    不存在（诊断 grep 输出为空），simctl create 失败。
+          # 所以：动态发现 devicetype / 预装设备，每个候选 destination 都先用
+          # xcodebuild -showdestinations 验证"真的能解析"再采用；全部失败则把
+          # 完整设备清单打进日志，供下一轮对症处理。
+          set -euo pipefail
+
+          RUNTIMES="$(xcrun simctl list runtimes)"
+          DEVICES="$(xcrun simctl list devices available)"
+          DEVTYPES="$(xcrun simctl list devicetypes)"
+
+          show_destinations() {
+            xcodebuild -project "$PROJECT" -scheme "$SCHEME" -showdestinations 2>/dev/null || true
+          }
+
+          # 只取 -showdestinations 的 Available 段，避免误匹配 Ineligible 里的同款；
+          # 老格式没有分段标记时退回全量输出。
+          available_destinations() {
+            local out
+            out="$(show_destinations)"
+            local avail
+            avail="$(awk '/Ineligible/{exit} /Available/{found=1; next} found{print}' <<< "$out")"
+            if [ -z "$avail" ]; then
+              avail="$out"
+            fi
+            printf '%s' "$avail"
+          }
+
+          # 候选必须同时命中 OS 和 name（兼容 OS=/OS:、name=/name: 两种格式）
+          destination_resolves() {
+            local ospat="$1" name="$2" avail
+            avail="$(available_destinations)"
+            echo "$avail" | grep -Eq "OS[:=]${ospat}.*name[:=]${name}|name[:=]${name}.*OS[:=]${ospat}"
+          }
+
+          # 从 devices available 输出里取指定 OS 段的第一台预装设备名
+          pick_preinstalled() {
+            local os="$1" name ospat
+            name="$(awk -v os="$os" '
+              $0 ~ "^-- iOS " os " --" {sec=1; next}
+              /^-- / {sec=0}
+              sec && /^[ \t]+[^ \t].* \(/ {
+                line=$0
+                sub(/\(.*/, "", line)
+                gsub(/^[ \t]+|[ \t]+$/, "", line)
+                print line
+                exit
+              }' <<< "$DEVICES" || true)"
+            [ -n "$name" ] || return 1
+            ospat="${os//./\\.}"
+            destination_resolves "$ospat" "$name" || return 1
+            DEST_NAME="$name"
+            DEST_OS="$os"
+            echo "✅ using preinstalled $name on iOS $os"
+          }
+
+          DEST_NAME=""
+          DEST_OS=""
+
+          # —— 首选：在 iOS 27.1（快照基线 runtime）上新建一台设备 ——
+          # 机型从镜像实际存在的 devicetype 里挑，不硬编码型号名。
+          if grep -q "iOS 27.1" <<< "$RUNTIMES"; then
+            runtime_id="$(grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS-27-1' <<< "$RUNTIMES" | head -1 || true)"
+            devtype="$(grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.iPhone[^)]*' <<< "$DEVTYPES" | head -1 || true)"
+            if [ -n "$runtime_id" ] && [ -n "$devtype" ]; then
+              xcrun simctl delete "CI-iPhone-27-1" 2>/dev/null || true
+              xcrun simctl delete "CI-iPhone-17-iOS-27-1" 2>/dev/null || true
+              if xcrun simctl create "CI-iPhone-27-1" "$devtype" "$runtime_id"; then
+                if destination_resolves '27\.1' 'CI-iPhone-27-1'; then
+                  DEST_NAME="CI-iPhone-27-1"
+                  DEST_OS="27.1"
+                  echo "✅ created CI-iPhone-27-1 on iOS 27.1 ($devtype)"
+                fi
+              fi
+            fi
+          fi
+
+          # —— 次选/兜底：预装设备按 name+OS 钉死（run #4 验证过这条路能跑通全部测试） ——
+          if [ -z "$DEST_NAME" ]; then
+            for os in 27.1 27.2; do
+              pick_preinstalled "$os" && break
+            done
+          fi
+
+          # —— 再兜底：镜像上实际存在的最高 iOS 27.x runtime ——
+          if [ -z "$DEST_NAME" ]; then
+            highest="$(grep -oE 'iOS 27\.[0-9]+' <<< "$RUNTIMES" | sort -V | tail -1 | cut -d' ' -f2 || true)"
+            if [ -n "$highest" ]; then
+              pick_preinstalled "$highest" || true
+            fi
+          fi
+
+          if [ -z "$DEST_NAME" ]; then
+            echo "::error::No usable iOS 27.x simulator destination. Full inventory below."
+            echo "--- runtimes ---"
+            echo "$RUNTIMES"
+            echo "--- devices available ---"
+            echo "$DEVICES"
+            echo "--- devicetypes ---"
+            echo "$DEVTYPES"
+            exit 1
+          fi
+
+          DESTINATION="platform=iOS Simulator,name=$DEST_NAME,OS=$DEST_OS"
+          echo "Selected destination: $DESTINATION"
+          echo "DESTINATION=$DESTINATION" >> "$GITHUB_ENV"
 
       - name: Run Unit, Snapshot & UI Tests
         run: |

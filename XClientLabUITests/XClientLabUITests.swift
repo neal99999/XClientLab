@@ -6,29 +6,55 @@ final class XClientLabUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// 新演示结构：启动先看到“古法 vs AI”的对照，而不是模块清单。
+    /// 新演示结构：启动直接进入「交易所专项」主线，而不是模块清单或通用对照表。
     @MainActor
-    func testLaunchShowsDemoComparison() {
+    func testLaunchShowsExchangeStory() {
         let app = XCUIApplication()
         app.launch()
 
         XCTAssertTrue(
-            app.staticTexts["同一个问题，两种排查"].waitForExistence(timeout: 10),
-            "The AI-vs-traditional comparison should be the first screen"
+            app.navigationBars["交易所专项"].waitForExistence(timeout: 10),
+            "The exchange story should be the first screen"
         )
-        XCTAssertTrue(app.buttons["demo.play"].exists, "Comparison should expose a playback button")
+        XCTAssertTrue(app.buttons["case.render"].exists, "Case 01 should expose its replay entry")
+        XCTAssertTrue(app.buttons["case.network"].exists, "Case 02 should expose its replay entry")
     }
 
+    /// 主线必须能从“现象/难点/方案”直接进入可交互复盘。
     @MainActor
-    func testDemoComparisonCanOpenRealDrill() {
+    func testExchangeStoryOpensRenderCase() {
         let app = XCUIApplication()
         app.launch()
 
-        let open = app.buttons["demo.open"]
-        tapWhenHittable(open, in: app)
+        tapWhenHittable(app.buttons["case.render"], in: app)
         XCTAssertTrue(
-            app.navigationBars["1.1 CPU 卡顿"].waitForExistence(timeout: 6),
-            "The comparison CTA should push the selected real drill"
+            app.navigationBars["01 渲染性能重构"].waitForExistence(timeout: 6),
+            "Case 01 CTA should push the rendering replay"
+        )
+        XCTAssertTrue(app.buttons["render.toggle"].waitForExistence(timeout: 6))
+    }
+
+    /// 核心业务链路：注入“HTTP 迟到、状态倒流”事件，版本号保护必须保持已成交。
+    @MainActor
+    func testConsistencyCaseRejectsStaleOrderEvent() {
+        let app = XCUIApplication()
+        app.launch()
+
+        tapWhenHittable(app.buttons["case.network"], in: app)
+        XCTAssertTrue(app.navigationBars["02 弱网与一致性"].waitForExistence(timeout: 6))
+
+        let inject = app.buttons["net.race"]
+        tapWhenHittable(inject, in: app)
+        XCTAssertTrue(
+            app.staticTexts["已成交 (filled) · seq=12"].waitForExistence(timeout: 4),
+            "WS filled event should move the order to filled first"
+        )
+        let rejected = app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS %@", "旧版本")
+        ).firstMatch
+        XCTAssertTrue(
+            rejected.waitForExistence(timeout: 4),
+            "The stale HTTP event must be rejected instead of rolling the state back"
         )
     }
 
@@ -109,6 +135,10 @@ final class XClientLabUITests: XCTestCase {
         app.launch()
 
         app.tabBars.buttons["tab.lab"].tap()
+        XCTAssertTrue(
+            app.buttons["lab.performance"].waitForExistence(timeout: 6),
+            "Lab index should finish pushing before scrolling to exchange"
+        )
         tapWhenHittable(app.buttons["lab.exchange"], in: app)
         tapWhenHittable(app.buttons["exc.scenario.book"], in: app)
 
@@ -143,6 +173,10 @@ final class XClientLabUITests: XCTestCase {
         let tab = app.tabBars.buttons["tab.lab"]
         XCTAssertTrue(tab.waitForExistence(timeout: 10), "Lab tab should exist")
         tab.tap()
+        XCTAssertTrue(
+            app.buttons["lab.performance"].waitForExistence(timeout: 6),
+            "Lab index should finish pushing before opening \(moduleIdentifier)"
+        )
         tapWhenHittable(app.buttons[moduleIdentifier], in: app)
     }
 
@@ -151,14 +185,20 @@ final class XClientLabUITests: XCTestCase {
     private func tapWhenHittable(
         _ element: XCUIElement,
         in app: XCUIApplication,
-        maxSwipes: Int = 5
+        maxSwipes: Int = 8
     ) {
-        XCTAssertTrue(element.waitForExistence(timeout: 8), "\(element) should exist")
+        // 卡片在 UIScrollView 里时，离屏元素可能暂时不在无障碍树中；
+        // 先滚动再查询，避免 waitForExistence 在首屏直接判失败。
         var swipes = 0
-        while !element.isHittable && swipes < maxSwipes {
+        while swipes <= maxSwipes {
+            if element.exists && element.isHittable {
+                element.tap()
+                return
+            }
             app.swipeUp()
             swipes += 1
         }
+        XCTAssertTrue(element.exists, "\(element) should exist after scrolling")
         XCTAssertTrue(element.isHittable, "\(element) should become hittable after scrolling")
         element.tap()
     }

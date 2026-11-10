@@ -1,9 +1,10 @@
 import UIKit
 
-/// 三个入口的 UIKit 根容器：演示 → 实验室 → AI 工坊。
+/// 三个入口的 UIKit 根容器：交易所专项 → 实验室 → AI 工坊。
 ///
-/// 不再把 5 个模块全部塞进 tab bar。演示页先给“古法 vs AI”的对照，
-/// 实验室再按模块进入真实场景；AI 工坊单独承载 Skill / MCP / 命令桩。
+/// 第一屏不再铺“AI 对照”表格，而是直接进入面试主线：
+/// 两个交易所案例的「现象 → 难点 → 动作 → 结果」。实验室只作为追问时的
+/// 证据抽屉，AI 工坊单独承载 Skill / MCP / 命令桩。
 final class RootTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,10 +14,10 @@ final class RootTabBarController: UITabBarController {
 
         viewControllers = [
             makeNavigation(
-                root: DemoComparisonViewController(),
-                title: "演示",
-                icon: "play.rectangle.fill",
-                identifier: "tab.demo",
+                root: ExchangeStoryViewController(),
+                title: "交易所专项",
+                icon: "chart.line.uptrend.xyaxis",
+                identifier: "tab.story",
                 tag: 0
             ),
             makeNavigation(
