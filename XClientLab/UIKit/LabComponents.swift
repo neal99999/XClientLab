@@ -335,7 +335,7 @@ final class LabCalloutView: UIView {
             switch self {
             case .problem: return "古法排查痛点"
             case .ai: return "AI MCP 新实践切入"
-            case .insight: return "面试讲解点"
+            case .insight: return "讲解点"
             }
         }
     }

@@ -173,7 +173,7 @@ final class ExchangeStoryViewController: LabBaseViewController {
         let card = LabCardView(accent: LabUI.amber, padding: 16)
         card.add(LabSectionHeaderView(
             kicker: "TALK TRACK",
-            title: "面试讲述节奏",
+            title: "验证标准",
             trailing: "4 BEATS",
             accent: LabUI.amber
         ))

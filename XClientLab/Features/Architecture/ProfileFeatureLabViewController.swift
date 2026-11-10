@@ -85,7 +85,7 @@ final class ProfileFeatureLabViewController: LabBaseViewController {
         ))
         add(LabCalloutView(
             kind: .insight,
-            message: "面试讲解顺序：先切 MOCK 看调用方无感，再指 resource provenance 证明资源来自模块 bundle，最后用 TRACE CHAIN 串起目录服务。"
+            message: "讲解顺序：先切 MOCK 看调用方无感，再指 resource provenance 证明资源来自模块 bundle，最后用 TRACE CHAIN 串起目录服务。"
         ))
 
         modeControl.accessibilityIdentifier = "arch.profile.mode"

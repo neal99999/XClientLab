@@ -95,7 +95,7 @@ final class ModuleGraphViewController: LabBaseViewController {
         ))
         add(LabCalloutView(
             kind: .insight,
-            message: "面试讲解顺序：先指 DAG 说明单向依赖，再 resolve 两次证明 singleton，最后用 Mock 替换证明协议边界。"
+            message: "讲解顺序：先指 DAG 说明单向依赖，再 resolve 两次证明 singleton，最后用 Mock 替换证明协议边界。"
         ))
     }
 

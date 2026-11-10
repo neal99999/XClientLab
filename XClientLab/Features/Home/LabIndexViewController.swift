@@ -20,7 +20,7 @@ final class LabIndexViewController: LabBaseViewController {
         add(LabScreenTitleView(
             index: "LAB / ALL DRILLS",
             title: "选择实验模块",
-            subtitle: "5 个模块、10 个可运行场景。每个场景都能单独复现；面试官追问哪一层，就从这里进哪一层。",
+            subtitle: "5 个模块：性能 5 条优化链路 + 2 个实测，异常 2 个、交易所 2 个、架构 2 个。每个场景都能单独复现。",
             accent: LabUI.cyan
         ))
 

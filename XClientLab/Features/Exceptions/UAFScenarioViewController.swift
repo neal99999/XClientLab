@@ -108,7 +108,7 @@ final class UAFScenarioViewController: LabBaseViewController {
         ))
         add(LabCalloutView(
             kind: .insight,
-            message: "面试讲解顺序：先承认这是真实崩溃 → 说明 0x1d 的含义 → 展示系统栈 → 用寄存器/队列归属把锅从系统挪回生命周期。"
+            message: "讲解顺序：先承认这是真实崩溃 → 说明 0x1d 的含义 → 展示系统栈 → 用寄存器/队列归属把锅从系统挪回生命周期。"
         ))
 
         add(LabConsoleView(store: viewModel.console, title: "UAF LOG", height: 170, accent: LabUI.coral))

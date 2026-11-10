@@ -1,49 +1,5 @@
 import UIKit
 
-// MARK: - 01 Performance
-
-final class PerformanceHomeViewController: ModuleHomeViewController {
-    init() {
-        super.init(
-            module: .performance,
-            metrics: [
-                .init("TARGET", "500", unit: "ms", detail: "可感知卡顿阈值", color: LabUI.coral),
-                .init("FRAME", "16.7", unit: "ms", detail: "60Hz 帧预算", color: LabUI.cyan),
-                .init("SCENARIOS", "02", unit: "drills", detail: "CPU / 内存", color: LabUI.mint),
-            ],
-            missionTitle: "性能不是「感觉卡」",
-            missionBody: "把模糊的用户反馈压缩成可复现的 trace：先制造确定的异常，再让 Instruments 给出时间、线程、调用栈三层证据。两个场景都自带实时观测面板，演示时不需要外接仪器就能看到波形。",
-            scenarios: [
-                .init(
-                    index: "1.1",
-                    title: "主线程 JSON 风暴",
-                    subtitle: "同步解析 6,000 条记录 + 密集正则，连续制造 >500ms 卡顿。",
-                    tags: ["Time Profiler", "Hitches", "Main Thread"],
-                    expectation: "worst pass > 500ms / dropped frames",
-                    identifier: "perf.scenario.cpu",
-                    destination: { CPUStallViewController() }
-                ),
-                .init(
-                    index: "1.2",
-                    title: "Allocations 锯齿",
-                    subtitle: "长列表里高频分配 / 释放 256KB 临时缓冲，制造内存尖峰。",
-                    tags: ["Allocations", "Peak", "Churn"],
-                    expectation: "sawtooth + peak footprint",
-                    identifier: "perf.scenario.alloc",
-                    destination: { AllocationStormViewController() }
-                ),
-            ],
-            problemNote: "「用户说卡」无法直接进 Instruments：没有稳定的复现路径，trace 里全是噪声；只看平均帧率又会漏掉 500ms 级的主线程阻塞。",
-            aiNote: "先用 MCP 让 Agent 读取 Time Profiler / Hitch 报告，按最重的主线程栈自动生成最小复现实验；再把「运行 → 采集 → 归因」固化成可重复命令。"
-        )
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
 // MARK: - 02 Exceptions
 
 final class ExceptionsHomeViewController: ModuleHomeViewController {
