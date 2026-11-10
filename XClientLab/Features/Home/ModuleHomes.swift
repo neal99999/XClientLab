@@ -88,50 +88,6 @@ final class ExchangeHomeViewController: ModuleHomeViewController {
     }
 }
 
-// MARK: - 04 AI-Native
-
-final class AINativeHomeViewController: ModuleHomeViewController {
-    init() {
-        super.init(
-            module: .aiNative,
-            metrics: [
-                .init("SKILLS", "03", detail: "可复用调试剧本", color: LabUI.violet),
-                .init("STATES", "05", detail: "MCP 通道状态", color: LabUI.cyan),
-                .init("ARTIFACTS", "03", detail: "XCTest / LLDB / MCP", color: LabUI.mint),
-            ],
-            missionTitle: "把调试经验变成可复用资产",
-            missionBody: "AI-Native 不是「让模型猜」：而是把 LLDB 的异步通道纪律、排查步骤和终端命令沉淀成 Skill / 模板 / 命令桩，让每次演示和回归都走同一条可审计路径。",
-            scenarios: [
-                .init(
-                    index: "4.1",
-                    title: "MCP 通道 + Skills",
-                    subtitle: "状态机演示 interrupt / status 轮询；内置可复制的 LLDB Skill。",
-                    tags: ["Xcode MCP", "LLDB", "Skill"],
-                    expectation: "no command while running",
-                    identifier: "ai.scenario.skills",
-                    destination: { SkillLibraryViewController() }
-                ),
-                .init(
-                    index: "4.2",
-                    title: "Terminal-first 命令桩",
-                    subtitle: "一键生成 XCTest 桩、LLDB 脚本与 MCP JSON 到沙盒。",
-                    tags: ["XCTest", "LLDB", "MCP"],
-                    expectation: "generated artifacts on disk",
-                    identifier: "ai.scenario.terminal",
-                    destination: { TerminalAutomationViewController() }
-                ),
-            ],
-            problemNote: "调试经验留在个人肌肉记忆里：换一个人、换一次会话，就要重新摸索 process status 与 interrupt 的时机，容易把现场放跑。",
-            aiNote: "把「先取证再继续」写成可执行的 Skill 与 MCP guardrail，让 Agent 在异步 resuming 状态下也遵守通道纪律；终端命令桩则把一次性操作变成可回归资产。"
-        )
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-}
-
 // MARK: - 05 Architecture
 
 final class ArchitectureHomeViewController: ModuleHomeViewController {

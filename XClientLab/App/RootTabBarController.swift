@@ -4,7 +4,8 @@ import UIKit
 ///
 /// 第一屏不再铺“AI 对照”表格，而是直接进入面试主线：
 /// 两个交易所案例的「现象 → 难点 → 动作 → 结果」。实验室只作为追问时的
-/// 证据抽屉，AI 工坊单独承载 Skill / MCP / 命令桩。
+/// 证据抽屉；AI 工坊直接进入「五位一体」架构页，把架构、Skills 与 MCP
+/// 通道纪律放在同一屏讲完。
 final class RootTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,7 +29,7 @@ final class RootTabBarController: UITabBarController {
                 tag: 1
             ),
             makeNavigation(
-                root: AINativeHomeViewController(),
+                root: SkillLibraryViewController(),
                 title: "AI 工坊",
                 icon: "sparkles",
                 identifier: "tab.ai",
