@@ -39,7 +39,12 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        tapWhenHittable(app.buttons["case.network"], in: app)
+        let networkCase = app.buttons["case.network"]
+        XCTAssertTrue(networkCase.waitForExistence(timeout: 10), "Case 02 should be on the first screen")
+        tapWhenHittable(networkCase, in: app)
+        if !app.navigationBars["02 弱网与一致性"].waitForExistence(timeout: 3) {
+            networkCase.tap()
+        }
         XCTAssertTrue(app.navigationBars["02 弱网与一致性"].waitForExistence(timeout: 6))
 
         let inject = app.buttons["net.race"]
@@ -233,6 +238,19 @@ final class XClientLabUITests: XCTestCase {
             app.swipeUp()
             swipes += 1
         }
+
+        // 长页面可能已经滑过目标卡片；反向再找一遍，避免把“滑过头”
+        // 误判成“元素不存在”。
+        swipes = 0
+        while swipes <= maxSwipes {
+            if element.exists, element.isHittable {
+                element.tap()
+                return
+            }
+            app.swipeDown()
+            swipes += 1
+        }
+
         XCTAssertTrue(element.exists, "\(element) should exist after scrolling")
         XCTAssertTrue(element.isHittable, "\(element) should become hittable after scrolling")
         element.tap()
