@@ -51,6 +51,7 @@ struct Money: Equatable {
         let formatter = NumberFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
         formatter.groupingSeparator = ","
         formatter.groupingSize = 3
         formatter.maximumFractionDigits = 0

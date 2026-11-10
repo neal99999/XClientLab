@@ -262,11 +262,14 @@ xcodebuild -project XClientLab.xcodeproj -scheme XClientLab \
   -derivedDataPath ./DerivedData CODE_SIGNING_ALLOWED=NO \
   -skipPackagePluginValidation build
 
-# 测试（8 个用例）
+# 测试（40 个用例；推荐 fastlane scan）
+fastlane test
+
+# 等价裸命令
 xcodebuild test -project XClientLab.xcodeproj -scheme XClientLab \
   -destination 'platform=iOS Simulator,name=iPhone 18 Pro Max' \
   -derivedDataPath ./DerivedData CODE_SIGNING_ALLOWED=NO \
-  -skipPackagePluginValidation
+  -skipPackagePluginValidation -disableAutomaticPackageResolution
 
 # 安装 / 启动
 xcrun simctl install booted ./DerivedData/Build/Products/Debug-iphonesimulator/XClientLab.app

@@ -40,11 +40,23 @@ make format-check  # 只检查不修改；当前基线 19/28 文件未格式化�
 
 ## 验证结果
 
-最近一次本机验证（iOS 27.1 模拟器）：
+最近一次本机验证（iOS 27.1 模拟器 / iPhone 18 Pro Max）：
 
 - `xcodebuild ... -skipPackagePluginValidation build` → `** BUILD SUCCEEDED **`
-- `xcodebuild test ... -skipPackagePluginValidation -disableAutomaticPackageResolution` → `** TEST SUCCEEDED **`
-- 8 个用例通过：6 个核心逻辑测试（盘口合并、重连退避、CPU payload、Allocations 数据、Markdown 解析、12 档盘口工厂）+ 2 个 UI 测试（首屏、1.1 入口 push + RUN 按钮可达）。
+- `make test` → `** TEST SUCCEEDED **`
+- `fastlane test` → 40 个用例，0 失败。
+
+测试分层：
+
+| 层 | 用例数 | 覆盖 |
+| --- | ---: | --- |
+| 纯领域逻辑 | 20 | 金额/时间换算、行情解析、委托校验 |
+| 网络 + ViewModel | 6 | `MarketDataProviding` Mock、loading/loaded/failed 状态、重试、符号归一化 |
+| UI 组件快照 | 4 | 模块头、卡片、指标行、AI Callout（swift-snapshot-testing） |
+| 既有核心回归 | 6 | 盘口合并、重连退避、CPU payload、Allocations 数据、Markdown 解析、12 档盘口 |
+| 核心 UI 链路 | 4 | 首屏、1.1 入口、CPU RUN 完成回 IDLE、3.2 盘口 START/STOP |
+
+测试分层、Mock 约定与快照基线维护见 [Docs/Testing.md](Docs/Testing.md)。
 
 ## 第三方依赖
 

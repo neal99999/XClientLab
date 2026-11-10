@@ -1,0 +1,35 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Run XClientLab unit, snapshot and UI tests via fastlane scan"
+  lane :test do
+    scan(
+      project: "XClientLab.xcodeproj",
+      scheme: "XClientLab",
+      destination: ENV.fetch("SIMULATOR_DESTINATION") {
+        "platform=iOS Simulator,name=#{ENV.fetch("SIMULATOR_NAME", "iPhone 18 Pro Max")}"
+      },
+      derived_data_path: "DerivedData",
+      output_directory: "fastlane/test_output",
+      result_bundle: true,
+      clean: false,
+      xcargs: "CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution"
+    )
+  end
+
+  desc "Build the app for the simulator without codesigning"
+  lane :build do
+    sh(
+      "xcodebuild",
+      "-project", "XClientLab.xcodeproj",
+      "-scheme", "XClientLab",
+      "-sdk", "iphonesimulator",
+      "-destination", "generic/platform=iOS Simulator",
+      "-derivedDataPath", "DerivedData",
+      "CODE_SIGNING_ALLOWED=NO",
+      "-skipPackagePluginValidation",
+      "-disableAutomaticPackageResolution",
+      "build"
+    )
+  end
+end

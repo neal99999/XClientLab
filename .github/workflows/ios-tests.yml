@@ -1,0 +1,37 @@
+name: iOS Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      # GitHub's macOS image ships with Xcode 16.x; override if your runner has Xcode 27.
+      SIMULATOR_DESTINATION: platform=iOS Simulator,name=iPhone 16 Pro
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Show Xcode and simulators
+        run: |
+          xcodebuild -version
+          xcrun simctl list devices available
+
+      - name: Run fastlane scan
+        run: bundle exec fastlane test
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fastlane-test-output
+          path: fastlane/test_output
+          if-no-files-found: ignore

@@ -13,12 +13,13 @@ XCODEBUILD   ?= xcodebuild -project $(PROJECT) -scheme $(SCHEME) \
 SWIFTLINT    ?= swiftlint
 SWIFTFORMAT  ?= swiftformat
 
-.PHONY: help resolve build test lint format format-check clean
+.PHONY: help resolve build test ci lint format format-check clean
 
 help:
 	@echo "make resolve       解析/更新 SPM 依赖（生成 Package.resolved）"
 	@echo "make build         命令行构建（跳过插件信任提示）"
 	@echo "make test          运行单元 + UI 测试"
+	@echo "make ci            fastlane scan 全量测试（CI 同款）"
 	@echo "make lint          SwiftLint 静态检查（与构建期插件同配置）"
 	@echo "make format        SwiftFormat 全量格式化 XClientLab/"
 	@echo "make format-check  SwiftFormat 只检查不修改（CI 用）"
@@ -32,6 +33,9 @@ build:
 
 test:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -destination "$(TEST_DESTINATION)" -derivedDataPath "$(DERIVED)" CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution test
+
+ci:
+	fastlane test
 
 lint:
 	$(SWIFTLINT) lint --quiet --no-cache XClientLab

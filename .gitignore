@@ -20,3 +20,8 @@ xcuserdata/
 
 # Local automation output copied out of the simulator
 XClientLabTests/Generated/
+
+# Fastlane / Bundler
+fastlane/test_output/
+vendor/bundle/
+.bundle/

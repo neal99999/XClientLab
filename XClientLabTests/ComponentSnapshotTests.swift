@@ -7,7 +7,7 @@ import XCTest
 /// 首次录制后 `record` 必须保持 false，否则 CI 会失去回归意义。
 @MainActor
 final class ComponentSnapshotTests: XCTestCase {
-    private let record = true
+    private let record = false
     private let size = CGSize(width: 360, height: 220)
 
     private var config: ViewImageConfig {
