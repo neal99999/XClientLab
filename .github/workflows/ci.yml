@@ -1,44 +1,97 @@
+name: iOS CI
 
-name: iOS CI Workflow
-
-# 触发条件：当向 main 或 develop 分支提交 Pull Request，或者直接 Push 时触发
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
+  workflow_dispatch:
+
+# 同一分支只保留最新一次运行：连续 push 时自动取消旧任务，避免旧的失败结果干扰判断
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
-    name: Build and Run Tests
-    # 指定运行环境为 macOS 14 (包含最新的 Xcode 环境)
-    runs-on: macos-latest
+    name: Build & Test (Xcode 27.1)
+    # 本项目是 objectVersion 110（Xcode 27 工程格式），macos-latest 目前是
+    # macOS 26 + Xcode 26.6，打不开这个工程；xcode-27 镜像自带 Xcode 27.1，
+    # 与本地开发环境一致。该镜像目前是 public preview，排队可能稍慢。
+    runs-on: xcode-27
+    timeout-minutes: 60
+
+    env:
+      PROJECT: XClientLab.xcodeproj
+      SCHEME: XClientLab
+      # 27.1 运行时里没有 iPhone 18 Pro Max，27.2 运行时才有；
+      # 快照测试用的是固定 360x220 的 ViewImageConfig，不依赖具体机型尺寸。
+      DESTINATION: "platform=iOS Simulator,name=iPhone 18 Pro Max,OS=27.2"
 
     steps:
-      # 1. 检出代码
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      # 2. 指定 Xcode 版本 (根据项目需求调整，例如 Xcode 15)
-      - name: Select Xcode Version
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '27.1'
+      - name: Select Xcode 27.1
+        run: |
+          set -euo pipefail
+          if [ -d /Applications/Xcode_27.1.app ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_27.1.app/Contents/Developer" >> "$GITHUB_ENV"
+          else
+            # 镜像滚动更新时 27.1 可能被 27.x 补丁版替换，退回到最高的 27.x
+            latest="$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1 || true)"
+            if [ -z "$latest" ]; then
+              echo "::error::No Xcode 27.x found on this runner. Use the 'xcode-27' image."
+              exit 1
+            fi
+            echo "Xcode 27.1 not found, falling back to $latest"
+            echo "DEVELOPER_DIR=$latest/Contents/Developer" >> "$GITHUB_ENV"
+          fi
 
-      # 3. 缓存 SPM 或 CocoaPods 依赖，加速构建
-      - name: Cache DerivedData
-        uses: actions/cache@v4
+      - name: Show Toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcrun simctl list devices available | grep -E "iPhone 18|iPhone 17" || true
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v6
         with:
-          path: ~/Library/Caches/org.swift.swiftpm
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ${{ github.workspace }}/DerivedData/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('XClientLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
 
-      # 4. 运行测试（支持包含像 snapshot-testing 的单元/快照测试）
-      - name: Run Unit & Snapshot Tests
+      - name: Resolve Packages
         run: |
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME" -resolvePackageDependencies
+
+      - name: Run Unit, Snapshot & UI Tests
+        run: |
+          set -o pipefail
           xcodebuild test \
-            -scheme "XClientLab" \
-            -destination "platform=iOS Simulator,name=iPhone 15" \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "$DESTINATION" \
+            -derivedDataPath DerivedData \
             -enableCodeCoverage YES \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+            -resultBundlePath TestResults/CI.xcresult \
+            -skipPackagePluginValidation \
+            -disableAutomaticPackageResolution \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: |
+            TestResults
+            DerivedData/Logs/Test
+          if-no-files-found: ignore
+          retention-days: 7

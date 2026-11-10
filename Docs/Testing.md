@@ -95,15 +95,15 @@ XClientLabTests/__Snapshots__/ComponentSnapshotTests/
 - `xcargs: CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution`
 - 结果包输出到 `fastlane/test_output/`
 
-CI 在 `.github/workflows/ios-tests.yml`：
+CI 在 `.github/workflows/ci.yml`，直接调用 `xcodebuild test`（不经过 fastlane，少一层 Ruby 依赖）：
 
-```yaml
-- uses: ruby/setup-ruby@v1
-  with: { ruby-version: '3.2', bundler-cache: true }
-- run: bundle exec fastlane test
-```
+- runner：`xcode-27`（macOS 27 + Xcode 27.1，与本地一致；本项目是 objectVersion 110 的 Xcode 27 工程格式，Xcode 26 打不开）
+- destination：`platform=iOS Simulator,name=iPhone 18 Pro Max,OS=27.2`
+- 参数与本地一致：`CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution`
+- scheme 由 `XClientLab.xcodeproj/xcshareddata/xcschemes/XClientLab.xcscheme` 共享，CI checkout 后可直接使用
+- `.xcresult` 与测试日志通过 `actions/upload-artifact` 保留 7 天
 
-GitHub 的 `macos-15` 镜像默认 Xcode 16.x，所以 workflow 里把 `SIMULATOR_DESTINATION` 设为 `platform=iOS Simulator,name=iPhone 16 Pro`；如果 runner 已升级到 Xcode 27，改成 `iPhone 18 Pro Max` 即可。测试产物通过 `actions/upload-artifact` 保留。
+`bundle exec fastlane test` 仍可用于本地复跑同一条链路。
 
 ## 8. 边界
 
