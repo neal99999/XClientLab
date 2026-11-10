@@ -117,6 +117,7 @@ final class CPUStallViewController: LabBaseViewController {
 
         intensityControl.accessibilityIdentifier = "cpu.intensity"
         runButton.accessibilityIdentifier = "cpu.run"
+        resetButton.accessibilityIdentifier = "cpu.reset"
         runButton.addTarget(self, action: #selector(runTapped), for: .touchUpInside)
         resetButton.addTarget(self, action: #selector(resetTapped), for: .touchUpInside)
         intensityControl.addTarget(self, action: #selector(intensityChanged), for: .valueChanged)

@@ -17,19 +17,23 @@ permissions:
 
 jobs:
   build-and-test:
-    name: Build & Test (Xcode 27.1)
+    name: Build & Test (Xcode 27.x)
     # 本项目是 objectVersion 110（Xcode 27 工程格式），macos-latest 目前是
-    # macOS 26 + Xcode 26.6，打不开这个工程；xcode-27 镜像自带 Xcode 27.1，
-    # 与本地开发环境一致。该镜像目前是 public preview，排队可能稍慢。
+    # macOS 26 + Xcode 26.6，打不开这个工程；xcode-27 镜像自带 Xcode 27.0~27.2。
+    # 该镜像目前是 public preview，排队可能稍慢。
     runs-on: xcode-27
     timeout-minutes: 60
 
     env:
       PROJECT: XClientLab.xcodeproj
       SCHEME: XClientLab
-      # 27.1 运行时里没有 iPhone 18 Pro Max，27.2 运行时才有；
-      # 快照测试用的是固定 360x220 的 ViewImageConfig，不依赖具体机型尺寸。
-      DESTINATION: "platform=iOS Simulator,name=iPhone 18 Pro Max,OS=27.2"
+      # 快照基线在本地 iOS 27.1 runtime 录制（见 README「验证结果」），CI 必须用同一
+      # runtime 渲染才能逐像素一致（27.2 上 SF Symbol/渐变类组件有像素差异，
+      # 已在 run #4 验证：3 个含系统资源的快照挂、纯文本的过）。不指定机型，
+      # 由 xcodebuild 在该 runtime 下挑可用设备（快照用固定 360x220 的
+      # ViewImageConfig，机型无关）。若镜像滚动后 27.1 runtime 被移除，
+      # 需显式重录基线并把这里改成对应 OS。
+      DESTINATION: "platform=iOS Simulator,OS=27.1"
 
     steps:
       - name: Checkout Repository
@@ -55,7 +59,7 @@ jobs:
         run: |
           xcodebuild -version
           xcrun simctl list runtimes
-          xcrun simctl list devices available | grep -E "iPhone 18|iPhone 17" || true
+          xcrun simctl list devices available
 
       - name: Cache SwiftPM
         uses: actions/cache@v6
@@ -74,6 +78,7 @@ jobs:
       - name: Run Unit, Snapshot & UI Tests
         run: |
           set -o pipefail
+          mkdir -p TestResults
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \

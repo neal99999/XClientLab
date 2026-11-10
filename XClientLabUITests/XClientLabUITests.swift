@@ -1,5 +1,6 @@
 import XCTest
 
+
 final class XClientLabUITests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -56,7 +57,39 @@ final class XClientLabUITests: XCTestCase {
             for: NSPredicate(format: "label == %@", "RUN BLOCKING WORK"),
             evaluatedWith: runButton
         )
-        wait(for: [finished], timeout: 30)
+        // 负载是 8 轮同步的 3MB JSON 解析 + 全文正则，按工作量计耗时；GitHub 的
+        // runner 比本机慢得多，30s 会超时（run #4 验证）。仍然要求真的执行完并
+        // 回到 IDLE，只是给慢环境留余量。
+        wait(for: [finished], timeout: 90)
+    }
+
+    /// 回归：控制台在 `reset()` 清空日志时不能因为排队中的 publisher 回调
+    /// 继续滚动旧行号而崩溃（UITableView NSInternalInconsistencyException）。
+    @MainActor
+    func testCPUStressRunThenResetDoesNotCrash() {
+        let app = XCUIApplication()
+        app.launch()
+
+        let entry = app.buttons["perf.scenario.cpu"]
+        XCTAssertTrue(entry.waitForExistence(timeout: 10))
+        entry.tap()
+
+        let runButton = app.buttons["cpu.run"]
+        XCTAssertTrue(runButton.waitForExistence(timeout: 6))
+        runButton.tap()
+
+        let resetButton = app.buttons["cpu.reset"]
+        XCTAssertTrue(resetButton.waitForExistence(timeout: 6))
+        // RUN 会阻塞主线程；这个点击会被排队到本轮结束后执行，正好覆盖
+        // “日志已写入、reset 清空、旧 entries 回调仍在队列中”的时序。
+        resetButton.tap()
+
+        let idle = expectation(
+            for: NSPredicate(format: "label == %@", "RUN BLOCKING WORK"),
+            evaluatedWith: runButton
+        )
+        wait(for: [idle], timeout: 90)
+        XCTAssertTrue(app.staticTexts["RUN LOG"].exists || app.staticTexts["STALL LOG"].exists)
     }
 
     /// 核心业务链路 2：盘口推送从 START 到 STOP 的状态切换。

@@ -270,8 +270,6 @@ final class ReconnectViewModel: NSObject, ObservableObject {
     }
 }
 
-import Foundation
-import UIKit
 
 struct BookLevel: Identifiable, Equatable {
     let price: Double

@@ -97,8 +97,8 @@ XClientLabTests/__Snapshots__/ComponentSnapshotTests/
 
 CI 在 `.github/workflows/ci.yml`，直接调用 `xcodebuild test`（不经过 fastlane，少一层 Ruby 依赖）：
 
-- runner：`xcode-27`（macOS 27 + Xcode 27.1，与本地一致；本项目是 objectVersion 110 的 Xcode 27 工程格式，Xcode 26 打不开）
-- destination：`platform=iOS Simulator,name=iPhone 18 Pro Max,OS=27.2`
+- runner：`xcode-27`（macOS 27 + Xcode 27.0~27.2；本项目是 objectVersion 110 的 Xcode 27 工程格式，Xcode 26 打不开）
+- destination：`platform=iOS Simulator,OS=27.1`，与快照基线的录制 runtime 对齐。run #4 验证过：27.2 runtime 上含 SF Symbol/渐变的 3 个快照出现像素差异，纯文本的通过；不指定机型，快照用固定 360x220 的 ViewImageConfig，机型无关
 - 参数与本地一致：`CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution`
 - scheme 由 `XClientLab.xcodeproj/xcshareddata/xcschemes/XClientLab.xcscheme` 共享，CI checkout 后可直接使用
 - `.xcresult` 与测试日志通过 `actions/upload-artifact` 保留 7 天

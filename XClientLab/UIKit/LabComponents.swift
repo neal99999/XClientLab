@@ -602,10 +602,21 @@ final class LabConsoleView: UIView, UITableViewDataSource {
                 guard let self else { return }
                 countLabel.text = "\(entries.count) LINES"
                 table.reloadData()
-                let count = entries.count
-                if count > 0 {
-                    table.scrollToRow(at: IndexPath(row: count - 1, section: 0), at: .bottom, animated: false)
-                }
+                // `entries` is the value captured by this publisher callback. The
+                // store can already be empty by the time the callback runs (for
+                // example `reset()` clears the console immediately after a log),
+                // so never derive the scroll index from the captured array.
+                // Ask the table for its current row count instead.
+                //
+                // `reloadData()` can be deferred when the sink fires while the
+                // table is mid-layout/update: `numberOfRows(inSection:)` then
+                // reports the data-source count while the table's *presented*
+                // state still has 0 rows, and `scrollToRow` throws NSRange.
+                // `layoutIfNeeded()` flushes the deferred reload first.
+                table.layoutIfNeeded()
+                let rows = table.numberOfRows(inSection: 0)
+                guard rows > 0, table.window != nil else { return }
+                table.scrollToRow(at: IndexPath(row: rows - 1, section: 0), at: .bottom, animated: false)
             }
     }
 

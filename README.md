@@ -58,6 +58,60 @@ make format-check  # 只检查不修改；当前基线 19/28 文件未格式化�
 
 测试分层、Mock 约定与快照基线维护见 [Docs/Testing.md](Docs/Testing.md)。
 
+## 常见问题
+
+### Xcode 报 `No such module 'SnapshotTesting'`
+
+项目已把 `swift-snapshot-testing 1.17.6` 链接到 `XClientLabTests`，并在 `Package.resolved` 中锁定版本。命令行从空 DerivedData 构建也能通过，因此这个报错通常是 Xcode 的 SPM 缓存没有重新解析，而不是源码缺少依赖。
+
+按顺序处理：
+
+1. 退出 Xcode。
+2. 终端执行 `make resolve`。
+3. 删除 Xcode 为本项目生成的旧缓存：`rm -rf ~/Library/Developer/Xcode/DerivedData/XClientLab-*`。
+4. 重新打开 `XClientLab.xcodeproj`，执行 **File > Packages > Reset Package Caches**，再 **Product > Clean Build Folder**。
+5. 确认 `XClientLabTests/ComponentSnapshotTests.swift` 的 Target Membership 是 `XClientLabTests`，且该 target 的 Frameworks 中有 `SnapshotTesting`。
+
+验证单条快照测试：
+
+```bash
+xcodebuild test -project XClientLab.xcodeproj -scheme XClientLab \
+  -destination 'platform=iOS Simulator,name=iPhone 18 Pro Max' \
+  -only-testing:XClientLabTests/ComponentSnapshotTests \
+  CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation
+```
+
+如果 `import SnapshotTesting` 被写进了 `XClientLab` 或 `XClientLabUITests` target，也会出现同样的报错；该依赖目前只属于 `XClientLabTests`。
+
+### `Could not resolve package dependencies` / ReactiveSwift submodule 报错
+
+如果日志出现：
+
+```text
+Couldn't update repository submodules:
+fatal: could not open .../ReactiveSwift/.git/modules/.../tmp_pack_...
+```
+
+这是 Xcode 默认 DerivedData 里的 `ReactiveSwift` checkout 损坏，不是项目依赖写错。清掉该项目的 SourcePackages 后重新解析即可：
+
+```bash
+rm -rf ~/Library/Developer/Xcode/DerivedData/XClientLab-*/SourcePackages
+xcodebuild -resolvePackageDependencies -project XClientLab.xcodeproj -scheme XClientLab
+```
+
+也可以在 Xcode 里执行 **File > Packages > Reset Package Caches**。`ReactiveSwift` 是 Moya 的传递依赖，当前快照/单元测试并不直接使用它。
+
+### Xcode 显示 `Missing package product 'Alamofire'`
+
+如果刚清理过 `SourcePackages`，但 Xcode 仍显示 `Missing package product 'Alamofire'` / `'Kingfisher'`，这是 Xcode 进程里的旧 Package Graph 还没有重新加载。命令行验证可以正常构建时，优先按下面处理：
+
+1. **完全退出 Xcode**（`Cmd-Q`，不是只关窗口）。
+2. 终端执行 `make resolve`。
+3. 重新打开 `XClientLab.xcodeproj`，等待右上角包解析完成。
+4. 仍不恢复时：`File > Packages > Reset Package Caches`，然后 `File > Packages > Resolve Package Versions`。
+
+不要在 Xcode 正在构建或解析包时删除 `DerivedData`，否则容易出现上面的半初始化状态。
+
 ## 第三方依赖
 
 | 包 | 版本 | 用途 |
