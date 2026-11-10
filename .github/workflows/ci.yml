@@ -22,7 +22,7 @@ jobs:
     # macOS 26 + Xcode 26.6，打不开这个工程；xcode-27 镜像自带 Xcode 27.0~27.2。
     # 该镜像目前是 public preview，排队可能稍慢。
     runs-on: xcode-27
-    timeout-minutes: 60
+    timeout-minutes: 45
 
     env:
       PROJECT: XClientLab.xcodeproj
