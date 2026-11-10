@@ -28,3 +28,9 @@ XClientLabTests/Generated/
 fastlane/test_output/
 vendor/bundle/
 .bundle/
+
+# Instruments traces & Local backups
+*.trace/
+*.trace
+*.bak
+.tmp*/
