@@ -57,6 +57,36 @@ final class XClientLabUITests: XCTestCase {
         )
     }
 
+    /// 性能实验室先给“五条优化链路”，再落到可运行的 CPU/Alloc 实测。
+    @MainActor
+    func testPerformancePlaybookShowsFiveAreasAndLaunchDiagnostics() {
+        let app = XCUIApplication()
+        app.launch()
+
+        openLabModule("lab.performance", in: app)
+        XCTAssertTrue(
+            app.buttons["perf.topic.launch"].waitForExistence(timeout: 8),
+            "Launch topic should be the first optimization area"
+        )
+
+        let cpuTopic = app.buttons["perf.topic.cpu"]
+        var swipes = 0
+        while !cpuTopic.isHittable && swipes < 6 {
+            app.swipeUp()
+            swipes += 1
+        }
+        XCTAssertTrue(cpuTopic.exists, "All five optimization areas should exist")
+
+        app.swipeDown()
+        app.swipeDown()
+        tapWhenHittable(app.buttons["perf.topic.launch"], in: app)
+        XCTAssertTrue(app.navigationBars["启动速度与包大小"].waitForExistence(timeout: 6))
+        XCTAssertTrue(
+            app.staticTexts["本次启动的现场数字"].waitForExistence(timeout: 4),
+            "Launch topic should show live pre-main diagnostics"
+        )
+    }
+
     @MainActor
     func testOpenCPUStallDrill() {
         let app = XCUIApplication()
