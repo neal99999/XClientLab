@@ -90,6 +90,8 @@ final class XClientLabUITests: XCTestCase {
             app.staticTexts["本次启动的现场数字"].waitForExistence(timeout: 4),
             "Launch topic should show live pre-main diagnostics"
         )
+        XCTAssertFalse(app.staticTexts["0 ms"].exists, "Cold start must not be the stale static 0ms value")
+        XCTAssertFalse(app.staticTexts["40 KB"].exists, "Bundle size must not be the stale executable-only 40KB value")
     }
 
     @MainActor

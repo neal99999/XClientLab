@@ -35,7 +35,8 @@ build:
 	$(XCODEBUILD) CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation build
 
 test:
-	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -destination "$(TEST_DESTINATION)" -derivedDataPath "$(DERIVED)" CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution test
+	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -destination "$(TEST_DESTINATION)" -derivedDataPath "$(DERIVED)" CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution -parallel-testing-enabled NO test -only-testing:XClientLabTests
+	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -destination "$(TEST_DESTINATION)" -derivedDataPath "$(DERIVED)" CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution -parallel-testing-enabled NO test -only-testing:XClientLabUITests
 
 ci:
 	fastlane test
