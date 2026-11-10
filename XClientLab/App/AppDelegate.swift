@@ -10,6 +10,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         _: UIApplication,
         didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        PerformanceDiagnostics.captureProcessStart()
         LabUI.applyAppearance()
         AppComposition.bootstrap()
         return true
