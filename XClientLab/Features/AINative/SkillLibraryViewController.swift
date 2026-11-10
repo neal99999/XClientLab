@@ -22,6 +22,10 @@ final class SkillLibraryViewController: LabBaseViewController {
     private let unsafeButton = LabButton(title: "BT ALL WHILE RUNNING", style: .destructive, accent: LabUI.coral)
     private let resetButton = LabButton(title: "RESET", style: .ghost)
     private let checklist = labStack(spacing: 6)
+    private let skillsStack = labStack(spacing: 12)
+    private let skillCountLabel = labLabel("07 / 07", size: 9, weight: .bold, color: LabUI.textTertiary, mono: true, lines: 1)
+    private var filterButtons: [UIButton] = []
+    private var activeFilter: SkillFilter = .all
 
     init() {
         super.init(accent: LabUI.violet)
@@ -42,10 +46,32 @@ final class SkillLibraryViewController: LabBaseViewController {
     private func buildUI() {
         add(LabScreenTitleView(
             index: "SCENARIO 4.1  /  XCODE MCP",
-            title: "通道纪律与 Skills",
-            subtitle: "把 LLDB 的异步状态固化成状态机：running 时只允许 interrupt，stopped 后才批量取证，resume 只发生一次。",
+            title: "五位一体架构与 Skills",
+            subtitle: "规则定边界、技能给剧本、代理分角色、钩子卡门禁、MCP 接真实工具；7 个调试剧本按四类归档，随时复制进 Agent。",
             accent: LabUI.violet
         ))
+
+        add(makeArchitectureCard())
+        add(labMetricRow([
+            LabMetricTileView(
+                label: "PILLARS",
+                value: "5",
+                detail: "Rules / Skills / Agents / Hooks / MCP",
+                color: LabUI.violet
+            ),
+            LabMetricTileView(
+                label: "SKILLS",
+                value: "\(DebugSkillLibrary.all.count)",
+                detail: "四类可筛选剧本",
+                color: LabUI.amber
+            ),
+            LabMetricTileView(
+                label: "HUMAN GATE",
+                value: "1",
+                detail: "push 前必须人工确认",
+                color: LabUI.mint
+            )
+        ]))
 
         let flowCard = LabCardView(accent: LabUI.violet)
         flowCard.add(labLabel("CHANNEL STATE", size: 9.5, weight: .bold, color: LabUI.violet, mono: true, lines: 1))
@@ -78,13 +104,17 @@ final class SkillLibraryViewController: LabBaseViewController {
         add(LabSectionHeaderView(
             kicker: "SKILL LIBRARY",
             title: "可复制进 MCP 的调试剧本",
-            trailing: "03 SKILLS",
+            trailing: String(format: "%02d SKILLS", DebugSkillLibrary.all.count),
             accent: LabUI.violet
         ))
-        for skill in DebugSkillLibrary.all {
-            add(makeSkillCard(skill))
-        }
+        add(makeFilterCard())
+        add(skillsStack)
+        renderSkills()
 
+        add(LabCalloutView(
+            kind: .insight,
+            message: "7 个 Skill 覆盖异常崩溃、性能卡顿、并发与网络、工程质量四类；每个剧本都带「何时用 → 取证 → 治理 → 验收」的闭环。"
+        ))
         add(LabCalloutView(
             kind: .problem,
             message: "「点 Pause 再 bt all」在异步崩溃里经常失效：进程可能还在 running，LLDB 报错或卡住；再点 Continue 又把现场放跑。"
@@ -232,5 +262,206 @@ final class SkillDetailViewController: LabBaseViewController {
         let card = LabCardView(accent: skill.accent, padding: 16)
         card.add(MarkdownPreviewView(markdown: skill.markdown, accent: skill.accent))
         add(card)
+    }
+}
+
+// MARK: - 4.1 五位一体架构与分类筛选
+
+private extension SkillLibraryViewController {
+    func makeArchitectureCard() -> UIView {
+        let card = LabCardView(accent: LabUI.violet)
+        card.add(labLabel("AI-NATIVE 五位一体", size: 9.5, weight: .bold, color: LabUI.violet, mono: true, lines: 1))
+        card.add(labLabel(
+            "Rules 定边界，Skills 给剧本，Agents 分角色，Hooks 卡门禁，MCP 接真实工具。",
+            size: 15.5,
+            weight: .semibold,
+            color: LabUI.textPrimary,
+            rounded: true,
+            lines: 0
+        ))
+        card.add(labLabel(
+            "Workflows 把五者编排成一条可解释、可审计的交付流水线 —— 人来掌舵，AI 来执行。",
+            size: 11.5,
+            color: LabUI.textSecondary,
+            lines: 0
+        ))
+        let pillars: [ArchitecturePillar] = [
+            ArchitecturePillar(code: "RULES", detail: "CLAUDE.md：纪律与红线", accent: LabUI.coral),
+            ArchitecturePillar(code: "SKILLS", detail: "可复用的调试剧本", accent: LabUI.amber),
+            ArchitecturePillar(code: "AGENTS", detail: "只读预审 vs 执行代理", accent: LabUI.cyan),
+            ArchitecturePillar(code: "HOOKS", detail: "提交前的自动门禁", accent: LabUI.violet),
+            ArchitecturePillar(code: "MCP", detail: "LLDB / xcodebuild 真实通道", accent: LabUI.mint)
+        ]
+        for (index, pillar) in pillars.enumerated() {
+            card.add(makePillarRow(
+                symbol: "0\(index + 1)",
+                code: pillar.code,
+                detail: pillar.detail,
+                accent: pillar.accent
+            ))
+        }
+        card.add(makeWorkflowRow())
+        return card
+    }
+
+    func makePillarRow(symbol: String, code: String, detail: String, accent: UIColor) -> UIView {
+        let row = labStack(axis: .horizontal, spacing: 9, alignment: .center)
+        let badge = labLabel(symbol, size: 9, weight: .bold, color: accent, mono: true, lines: 1)
+        badge.textAlignment = .center
+        badge.backgroundColor = accent.withAlphaComponent(0.12)
+        badge.layer.cornerRadius = 5
+        badge.layer.masksToBounds = true
+        badge.snp.makeConstraints { make in
+            make.width.equalTo(22)
+            make.height.equalTo(20)
+        }
+        row.addArrangedSubview(badge)
+        let codeLabel = labLabel(code, size: 9.5, weight: .bold, color: accent, mono: true, lines: 1)
+        codeLabel.snp.makeConstraints { make in make.width.equalTo(66) }
+        row.addArrangedSubview(codeLabel)
+        row.addArrangedSubview(labLabel(detail, size: 11, color: LabUI.textSecondary, lines: 1))
+        return row
+    }
+
+    func makeWorkflowRow() -> UIView {
+        let row = labStack(axis: .horizontal, spacing: 9, alignment: .center)
+        let badge = labLabel("↳", size: 10, weight: .bold, color: LabUI.violet, mono: true, lines: 1)
+        badge.textAlignment = .center
+        badge.backgroundColor = LabUI.violet.withAlphaComponent(0.12)
+        badge.layer.cornerRadius = 5
+        badge.layer.masksToBounds = true
+        badge.snp.makeConstraints { make in
+            make.width.equalTo(22)
+            make.height.equalTo(20)
+        }
+        row.addArrangedSubview(badge)
+        let codeLabel = labLabel("WORKFLOWS", size: 9.5, weight: .bold, color: LabUI.violet, mono: true, lines: 1)
+        codeLabel.snp.makeConstraints { make in make.width.equalTo(66) }
+        row.addArrangedSubview(codeLabel)
+        row.addArrangedSubview(labLabel("把五者串成交付流水线", size: 11, color: LabUI.textSecondary, lines: 1))
+        return row
+    }
+
+    func makeFilterCard() -> UIView {
+        let card = LabCardView(accent: LabUI.cyan)
+        let head = labStack(axis: .horizontal, spacing: 8, alignment: .center)
+        head.addArrangedSubview(labLabel(
+            "FILTER BY CATEGORY",
+            size: 9.5,
+            weight: .bold,
+            color: LabUI.cyan,
+            mono: true,
+            lines: 1
+        ))
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        head.addArrangedSubview(spacer)
+        head.addArrangedSubview(skillCountLabel)
+        card.add(head)
+
+        let scroll = UIScrollView()
+        scroll.showsHorizontalScrollIndicator = false
+        scroll.alwaysBounceHorizontal = true
+        let row = labStack(axis: .horizontal, spacing: 6, alignment: .center)
+        filterButtons = SkillFilter.allCases.map { filter in
+            let button = makeFilterButton(filter)
+            row.addArrangedSubview(button)
+            return button
+        }
+        scroll.addSubview(row)
+        row.snp.makeConstraints { make in
+            make.edges.equalTo(scroll.contentLayoutGuide)
+            make.height.equalTo(scroll.frameLayoutGuide)
+        }
+        card.add(scroll)
+        scroll.snp.makeConstraints { make in make.height.equalTo(34) }
+        return card
+    }
+
+    func makeFilterButton(_ filter: SkillFilter) -> UIButton {
+        let button = UIButton(type: .system)
+        button.accessibilityIdentifier = "skill.filter.\(filter.rawValue)"
+        button.addAction(UIAction { [weak self] _ in
+            self?.selectFilter(filter)
+        }, for: .touchUpInside)
+        var config = UIButton.Configuration.plain()
+        config.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10)
+        config.background.cornerRadius = 7
+        button.configuration = config
+        applyFilterStyle(button, filter: filter, selected: filter == activeFilter)
+        return button
+    }
+
+    func applyFilterStyle(_ button: UIButton, filter: SkillFilter, selected: Bool) {
+        var config = button.configuration ?? .plain()
+        var title = AttributeContainer()
+        title.font = UIFont.monospacedSystemFont(ofSize: 10, weight: .bold)
+        title.foregroundColor = selected ? filter.accent : LabUI.textTertiary
+        config.attributedTitle = AttributedString(filter.title, attributes: title)
+        config.background.backgroundColor = selected ? filter.accent.withAlphaComponent(0.16) : LabUI.surfaceRaised
+        config.background.strokeColor = selected ? filter.accent.withAlphaComponent(0.55) : .clear
+        config.background.strokeWidth = selected ? 1 : 0
+        button.configuration = config
+    }
+
+    func selectFilter(_ filter: SkillFilter) {
+        activeFilter = filter
+        for (index, button) in filterButtons.enumerated() {
+            guard let item = SkillFilter(rawValue: index) else { continue }
+            applyFilterStyle(button, filter: item, selected: item == filter)
+        }
+        renderSkills()
+    }
+
+    func renderSkills() {
+        skillsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        let skills = DebugSkillLibrary.all.filter { skill in
+            guard let group = activeFilter.group else { return true }
+            return skill.group == group
+        }
+        for skill in skills {
+            skillsStack.addArrangedSubview(makeSkillCard(skill))
+        }
+        skillCountLabel.text = String(format: "%02d / %02d", skills.count, DebugSkillLibrary.all.count)
+    }
+}
+
+// MARK: - 分类筛选
+
+private struct ArchitecturePillar {
+    let code: String
+    let detail: String
+    let accent: UIColor
+}
+
+private enum SkillFilter: Int, CaseIterable {
+    case all
+    case crash
+    case performance
+    case concurrency
+    case engineering
+
+    var title: String {
+        switch self {
+        case .all: return "全部"
+        case .crash: return "异常崩溃"
+        case .performance: return "性能卡顿"
+        case .concurrency: return "并发与网络"
+        case .engineering: return "工程质量"
+        }
+    }
+
+    var group: DebugSkillGroup? {
+        switch self {
+        case .all: return nil
+        case .crash: return .crash
+        case .performance: return .performance
+        case .concurrency: return .concurrency
+        case .engineering: return .engineering
+        }
+    }
+
+    var accent: UIColor {
+        group?.accent ?? LabUI.violet
     }
 }

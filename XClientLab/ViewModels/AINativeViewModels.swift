@@ -8,6 +8,8 @@ enum AutomationArtifactKind: String, CaseIterable, Identifiable {
     case xctest = "XCTest 桩"
     case lldb = "LLDB 断点"
     case mcp = "MCP 指令"
+    case prWorkflow = "PR 工作流"
+    case mcpConfig = "MCP 配置"
 
     var id: String {
         rawValue
@@ -18,6 +20,8 @@ enum AutomationArtifactKind: String, CaseIterable, Identifiable {
         case .xctest: return "checklist"
         case .lldb: return "ladybug"
         case .mcp: return "terminal"
+        case .prWorkflow: return "checkmark.seal"
+        case .mcpConfig: return "server.rack"
         }
     }
 
@@ -26,6 +30,38 @@ enum AutomationArtifactKind: String, CaseIterable, Identifiable {
         case .xctest: return "swift"
         case .lldb: return "lldb"
         case .mcp: return "json"
+        case .prWorkflow: return "sh"
+        case .mcpConfig: return "json"
+        }
+    }
+
+    var fileNameSuffix: String {
+        switch self {
+        case .xctest: return "AutomationTests"
+        case .lldb: return "Drill"
+        case .mcp: return "MCP"
+        case .prWorkflow: return "PRWorkflow"
+        case .mcpConfig: return "MCPConfig"
+        }
+    }
+
+    var accent: UIColor {
+        switch self {
+        case .xctest: return LabUI.mint
+        case .lldb: return LabUI.amber
+        case .mcp: return LabUI.cyan
+        case .prWorkflow: return LabUI.violet
+        case .mcpConfig: return LabUI.mint
+        }
+    }
+
+    var summary: String {
+        switch self {
+        case .xctest: return "生成 XCTest 桩，验证异常或性能场景可稳定复现。"
+        case .lldb: return "生成 LLDB 取证脚本：status → interrupt → batch → 只 resume 一次。"
+        case .mcp: return "生成 MCP drill JSON，交给本地 iOS MCP Server 执行。"
+        case .prWorkflow: return "生成 /submit-pr 五阶段脚本：基线、门禁、预审、人类确认、推送。"
+        case .mcpConfig: return "生成 MCP 配置 JSON，连接 scripts/mcp/ios_dev_mcp.py。"
         }
     }
 }
@@ -124,7 +160,7 @@ struct GeneratedArtifact: Identifiable {
 
 enum AutomationStubFactory {
     static func make(kind: AutomationArtifactKind, scenario: AutomationScenario) -> (fileName: String, content: String) {
-        let fileName = "\(scenario.slug)\(kind == .xctest ? "AutomationTests" : kind == .lldb ? "Drill" : "MCP")" + ".\(kind.fileExtension)"
+        let fileName = "\(scenario.slug)\(kind.fileNameSuffix).\(kind.fileExtension)"
         switch kind {
         case .xctest:
             return (fileName, testStub(for: scenario))
@@ -132,6 +168,10 @@ enum AutomationStubFactory {
             return (fileName, lldbScript(for: scenario))
         case .mcp:
             return (fileName, mcpPlan(for: scenario))
+        case .prWorkflow:
+            return (fileName, prWorkflowScript(for: scenario))
+        case .mcpConfig:
+            return (fileName, mcpConfigJSON(for: scenario))
         }
     }
 
@@ -163,6 +203,28 @@ enum AutomationStubFactory {
 
             # 交给 MCP 执行时，务必保留 timeout 与 process status 守卫：
             # xcode-mcp run --plan \(artifact.fileName)
+            """
+        case .prWorkflow:
+            return base + """
+
+
+            # 复制到仓库根目录后执行（对应 .claude/workflows/submit-pr.md）：
+            # cp <path-to-file>/\(artifact.fileName) ./submit-pr.sh
+            # cd <repo-root> && bash submit-pr.sh
+
+            # 脚本会在 push 前停下来等待人工输入 CONFIRM
+            """
+        case .mcpConfig:
+            return base + """
+
+
+            # 注册到项目级 MCP 配置：
+            # cp <path-to-file>/\(artifact.fileName) ./.mcp.json
+
+            # 验证 Server 能完成 initialize 握手：
+            echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | python3 scripts/mcp/ios_dev_mcp.py | head -n 5
+
+            # 在 Claude Code 中执行 /mcp，确认 xclientlab-ios-tools 状态为 connected
             """
         }
     }
@@ -385,6 +447,70 @@ enum AutomationStubFactory {
         }
         """
     }
+
+}
+
+extension AutomationStubFactory {
+    // MARK: PR Workflow
+
+    static func prWorkflowScript(for scenario: AutomationScenario) -> String {
+        """
+        #!/usr/bin/env bash
+        # XClientLab · \(scenario.title)
+        # /submit-pr 五阶段质量流水线 · 对应 .claude/workflows/submit-pr.md
+        #
+        # 用法：cd <repo-root> && bash \(scenario.slug)PRWorkflow.sh
+        set -euo pipefail
+
+        echo "== 1/5 基线：确认分支与改动范围 =="
+        git rev-parse --show-toplevel
+        git branch --show-current
+        git status --short
+        git diff --stat
+
+        echo "== 2/5 自测门禁：任何 Error 立即中止 =="
+        make lint
+        make test
+        make format-check
+
+        echo "== 3/5 独立只读预审：只报 Blocker / Risk =="
+        # 审查维度：资金精度 / 线程死锁 / 生命周期 / 幂等重试
+        # 风险分级：低（UI、文档）/ 中（业务流）/ 高（TradingCore、并发、迁移、鉴权）
+        git diff --unified=0 | head -n 400
+
+        echo "== 4/5 人类掌舵门禁 =="
+        read -r -p "预审通过且风险已分级？输入 CONFIRM 继续：" approval
+        if [ "$approval" != "CONFIRM" ]; then
+          echo "已中止：等待人类确认，未执行任何 push。"
+          exit 1
+        fi
+
+        echo "== 5/5 推送分支并创建 PR =="
+        git push -u origin "$(git branch --show-current)"
+        gh pr create --fill --body "Scenario: \(scenario.title)"
+
+        echo "OK：PR 已创建，等待评审。"
+        """
+    }
+
+    // MARK: MCP Config
+
+    static func mcpConfigJSON(for scenario: AutomationScenario) -> String {
+        """
+        {
+          "mcpServers": {
+            "xclientlab-ios-tools": {
+              "command": "python3",
+              "args": ["scripts/mcp/ios_dev_mcp.py"],
+              "env": {
+                "PROJECT_ROOT": ".",
+                "XCL_SCENARIO": "\(scenario.rawValue)"
+              }
+            }
+          }
+        }
+        """
+    }
 }
 
 @MainActor
@@ -460,8 +586,6 @@ final class TerminalAutomationViewModel: NSObject, ObservableObject {
         return url
     }
 }
-
-import Foundation
 
 /// Scenario 4.1a — Xcode MCP channel discipline.
 ///
