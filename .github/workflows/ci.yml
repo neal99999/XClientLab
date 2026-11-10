@@ -23,7 +23,7 @@ jobs:
       - name: Select Xcode Version
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.2'
+          xcode-version: '27.1'
 
       # 3. 缓存 SPM 或 CocoaPods 依赖，加速构建
       - name: Cache DerivedData
