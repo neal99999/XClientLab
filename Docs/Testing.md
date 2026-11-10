@@ -22,6 +22,8 @@ xcodebuild test ... -only-testing:XClientLabUITests
 
 构建/测试需要 `CODE_SIGNING_ALLOWED=NO` 和 `-skipPackagePluginValidation`（SwiftLint build tool plugin）；全量测试额外加 `-disableAutomaticPackageResolution`，避免 CI 卡在 SPM 解析。
 
+`make test` 与 fastlane `test` 都会拆成 **unit/snapshot** 和 **UI** 两次执行：Xcode 26 在合并跑时偶发 `Unable to initialize test bundle` / 600s diagnostics timeout，拆开后结果稳定。
+
 ## 2. 44 个用例的分布
 
 | 测试类 | 数量 | 说明 |
