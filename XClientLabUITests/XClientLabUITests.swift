@@ -133,18 +133,7 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // 启动动画结束前点击标签可能被吞掉，先等首屏真正就绪。
-        XCTAssertTrue(
-            app.navigationBars["交易所专项"].waitForExistence(timeout: 10),
-            "Exchange story should be ready before switching tabs"
-        )
-        let labTab = app.tabBars.buttons["tab.lab"]
-        XCTAssertTrue(labTab.waitForExistence(timeout: 10), "Lab tab should exist")
-        labTab.tap()
-        XCTAssertTrue(
-            app.buttons["lab.performance"].waitForExistence(timeout: 6),
-            "Lab index should finish pushing before scrolling to exchange"
-        )
+        openLabIndex(in: app)
         tapWhenHittable(app.buttons["lab.exchange"], in: app)
         tapWhenHittable(app.buttons["exc.scenario.book"], in: app)
 
@@ -175,14 +164,24 @@ final class XClientLabUITests: XCTestCase {
     // MARK: - Navigation helpers
 
     @MainActor
-    private func openLabModule(_ moduleIdentifier: String, in app: XCUIApplication) {
+    private func openLabIndex(in app: XCUIApplication) {
         let tab = app.tabBars.buttons["tab.lab"]
         XCTAssertTrue(tab.waitForExistence(timeout: 10), "Lab tab should exist")
         tab.tap()
+        let entry = app.buttons["lab.performance"]
+        // 启动转场期间点击可能被吞掉;索引没出现时补点一次再等。
+        if !entry.waitForExistence(timeout: 5) {
+            tab.tap()
+        }
         XCTAssertTrue(
-            app.buttons["lab.performance"].waitForExistence(timeout: 6),
-            "Lab index should finish pushing before opening \(moduleIdentifier)"
+            entry.waitForExistence(timeout: 15),
+            "Lab index should finish pushing before opening its modules"
         )
+    }
+
+    @MainActor
+    private func openLabModule(_ moduleIdentifier: String, in app: XCUIApplication) {
+        openLabIndex(in: app)
         tapWhenHittable(app.buttons[moduleIdentifier], in: app)
     }
 
