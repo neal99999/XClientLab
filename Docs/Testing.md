@@ -22,7 +22,7 @@ xcodebuild test ... -only-testing:XClientLabUITests
 
 构建/测试需要 `CODE_SIGNING_ALLOWED=NO` 和 `-skipPackagePluginValidation`（SwiftLint build tool plugin）；全量测试额外加 `-disableAutomaticPackageResolution`，避免 CI 卡在 SPM 解析。
 
-## 2. 40 个用例的分布
+## 2. 42 个用例的分布
 
 | 测试类 | 数量 | 说明 |
 | --- | ---: | --- |
@@ -30,7 +30,7 @@ xcodebuild test ... -only-testing:XClientLabUITests
 | `MarketDataViewModelTests` | 6 | actor Mock 注入、success/malformed/retry/normalization/empty/reset 状态迁移 |
 | `ComponentSnapshotTests` | 4 | `LabModuleHeaderView`、`LabCardView`、`LabMetricTileView` 行、`LabCalloutView` |
 | `XClientLabTests`（既有） | 6 | 盘口合并、退避常量、CPU payload、Allocations 数据、Markdown parser、12 档盘口 |
-| `XClientLabUITests` | 4 | 启动首屏、1.1 push、CPU RUN 完成回 IDLE、3.2 盘口 START/STOP |
+| `XClientLabUITests` | 6 | 演示首屏、demo.open 进真实场景、1.1 push、CPU RUN 完成回 IDLE、RUN+RESET 回归、3.2 盘口 START/STOP |
 
 ## 3. 纯逻辑：把交易规则从 UI 里拆出来
 
@@ -74,16 +74,20 @@ XClientLabTests/__Snapshots__/ComponentSnapshotTests/
 3. 立刻改回 `record = false` 并重跑，确认 `TEST EXECUTE SUCCEEDED`；
 4. 基线 PNG 随代码提交，CI 只做比对，不录制。
 
+比对用 `precision: 0.97, perceptualPrecision: 0.98`：放行 SF Symbol/渐变在不同渲染环境的细微像素差异（run #4 的教训），错位、丢元素、色块变化这类结构性回归仍会被抓住。
+
 ## 6. 核心 UI 链路
 
-只保留 4 条稳定链路，避免 UI 测试变成 flaky 大全：
+只保留 6 条稳定链路，避免 UI 测试变成 flaky 大全（2026-11-10 动线重构：启动进「演示」页，实验室退到第二个 tab，场景入口是「模块卡 → 场景卡」两级）：
 
-- App 启动后能看到「性能优化专项」；
-- 1.1 入口 push 到「1.1 CPU 卡顿」；
-- 点 `cpu.run` 后，按钮从 `BLOCKING…` 回到 `RUN BLOCKING WORK`（真实跑完 12 个 pass）；
-- 交易所 tab → 3.2 → `START FEED` → `STOP FEED` → `START FEED`。
+- 启动首屏是「AI 对照」演示页（同一个问题，两种排查），带 `demo.play` 播放按钮；
+- 演示页 `demo.open` 一键进入所选场景的真实实验页；
+- 实验室 → 性能模块 → 1.1 入口 push 到「1.1 CPU 卡顿」；
+- 点 `cpu.run` 后，按钮从 `BLOCKING…` 回到 `RUN BLOCKING WORK`（真实跑完负载）；
+- CPU RUN 途中点 `cpu.reset` 不崩溃（回归 UITableView 清空崩溃）；
+- 实验室 → 交易所模块 → 3.2 → `START FEED` → `STOP FEED` → `START FEED`。
 
-定位符统一使用 `accessibilityIdentifier`（`tab.exchange`、`exc.scenario.book`、`book.toggle`、`cpu.run`），不依赖中文文案的层级。
+定位符统一使用 `accessibilityIdentifier`（`tab.lab`、`lab.performance`、`lab.exchange`、`perf.scenario.cpu`、`exc.scenario.book`、`demo.open`、`cpu.run`、`book.toggle`），不依赖中文文案的层级。
 
 ## 7. Fastlane + CI
 

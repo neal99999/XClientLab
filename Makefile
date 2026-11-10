@@ -13,7 +13,7 @@ XCODEBUILD   ?= xcodebuild -project $(PROJECT) -scheme $(SCHEME) \
 SWIFTLINT    ?= swiftlint
 SWIFTFORMAT  ?= swiftformat
 
-.PHONY: help resolve build test ci lint format format-check clean
+.PHONY: help resolve build test ci lint format format-check install-hooks clean
 
 help:
 	@echo "make resolve       解析/更新 SPM 依赖（生成 Package.resolved）"
@@ -23,6 +23,7 @@ help:
 	@echo "make lint          SwiftLint 静态检查（与构建期插件同配置）"
 	@echo "make format        SwiftFormat 全量格式化 XClientLab/"
 	@echo "make format-check  SwiftFormat 只检查不修改（CI 用）"
+	@echo "make install-hooks 配置 Git 预提交钩子（自动运行 SwiftLint）"
 	@echo "make clean         清理 $(DERIVED)"
 
 resolve:
@@ -45,6 +46,11 @@ format:
 
 format-check:
 	$(SWIFTFORMAT) --lint XClientLab
+
+install-hooks:
+	git config core.hooksPath .githooks
+	chmod +x .githooks/*
+	@echo "✅ Git hooks 已成功配置到 .githooks/ 目录！"
 
 clean:
 	rm -rf "$(DERIVED)"

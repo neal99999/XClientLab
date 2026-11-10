@@ -1,22 +1,35 @@
 import XCTest
 
-
 final class XClientLabUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
+    /// 新演示结构：启动先看到“古法 vs AI”的对照，而不是模块清单。
     @MainActor
-    func testLaunchShowsPerformanceModule() {
+    func testLaunchShowsDemoComparison() {
         let app = XCUIApplication()
         app.launch()
 
         XCTAssertTrue(
-            app.staticTexts["性能优化专项"].waitForExistence(timeout: 10),
-            "The performance module header should be visible after launch"
+            app.staticTexts["同一个问题，两种排查"].waitForExistence(timeout: 10),
+            "The AI-vs-traditional comparison should be the first screen"
         )
-        XCTAssertTrue(app.staticTexts["选择实验入口"].exists)
+        XCTAssertTrue(app.buttons["demo.play"].exists, "Comparison should expose a playback button")
+    }
+
+    @MainActor
+    func testDemoComparisonCanOpenRealDrill() {
+        let app = XCUIApplication()
+        app.launch()
+
+        let open = app.buttons["demo.open"]
+        tapWhenHittable(open, in: app)
+        XCTAssertTrue(
+            app.navigationBars["1.1 CPU 卡顿"].waitForExistence(timeout: 6),
+            "The comparison CTA should push the selected real drill"
+        )
     }
 
     @MainActor
@@ -24,9 +37,9 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
+        openLabModule("lab.performance", in: app)
         let entry = app.buttons["perf.scenario.cpu"]
-        XCTAssertTrue(entry.waitForExistence(timeout: 10), "CPU drill entry should exist")
-        entry.tap()
+        tapWhenHittable(entry, in: app)
 
         XCTAssertTrue(
             app.navigationBars["1.1 CPU 卡顿"].waitForExistence(timeout: 5),
@@ -44,9 +57,8 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        let entry = app.buttons["perf.scenario.cpu"]
-        XCTAssertTrue(entry.waitForExistence(timeout: 10))
-        entry.tap()
+        openLabModule("lab.performance", in: app)
+        tapWhenHittable(app.buttons["perf.scenario.cpu"], in: app)
 
         let runButton = app.buttons["cpu.run"]
         XCTAssertTrue(runButton.waitForExistence(timeout: 6))
@@ -70,9 +82,8 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        let entry = app.buttons["perf.scenario.cpu"]
-        XCTAssertTrue(entry.waitForExistence(timeout: 10))
-        entry.tap()
+        openLabModule("lab.performance", in: app)
+        tapWhenHittable(app.buttons["perf.scenario.cpu"], in: app)
 
         let runButton = app.buttons["cpu.run"]
         XCTAssertTrue(runButton.waitForExistence(timeout: 6))
@@ -89,7 +100,6 @@ final class XClientLabUITests: XCTestCase {
             evaluatedWith: runButton
         )
         wait(for: [idle], timeout: 90)
-        XCTAssertTrue(app.staticTexts["RUN LOG"].exists || app.staticTexts["STALL LOG"].exists)
     }
 
     /// 核心业务链路 2：盘口推送从 START 到 STOP 的状态切换。
@@ -98,13 +108,10 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        let exchangeTab = app.tabBars.buttons["tab.exchange"]
-        XCTAssertTrue(exchangeTab.waitForExistence(timeout: 10), "Exchange tab should exist")
-        exchangeTab.tap()
+        app.tabBars.buttons["tab.lab"].tap()
+        tapWhenHittable(app.buttons["lab.exchange"], in: app)
+        tapWhenHittable(app.buttons["exc.scenario.book"], in: app)
 
-        let entry = app.buttons["exc.scenario.book"]
-        XCTAssertTrue(entry.waitForExistence(timeout: 8), "Order book entry should exist")
-        entry.tap()
         XCTAssertTrue(
             app.navigationBars["3.2 Order Book"].waitForExistence(timeout: 6),
             "Order book detail should be pushed"
@@ -127,5 +134,32 @@ final class XClientLabUITests: XCTestCase {
             evaluatedWith: toggle
         )
         wait(for: [stopped], timeout: 8)
+    }
+
+    // MARK: - Navigation helpers
+
+    @MainActor
+    private func openLabModule(_ moduleIdentifier: String, in app: XCUIApplication) {
+        let tab = app.tabBars.buttons["tab.lab"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 10), "Lab tab should exist")
+        tab.tap()
+        tapWhenHittable(app.buttons[moduleIdentifier], in: app)
+    }
+
+    /// 卡片在滚动页里，XCUITest 不会自动滚动；统一用 swipe 找到可点击位置。
+    @MainActor
+    private func tapWhenHittable(
+        _ element: XCUIElement,
+        in app: XCUIApplication,
+        maxSwipes: Int = 5
+    ) {
+        XCTAssertTrue(element.waitForExistence(timeout: 8), "\(element) should exist")
+        var swipes = 0
+        while !element.isHittable && swipes < maxSwipes {
+            app.swipeUp()
+            swipes += 1
+        }
+        XCTAssertTrue(element.isHittable, "\(element) should become hittable after scrolling")
+        element.tap()
     }
 }

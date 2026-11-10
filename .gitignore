@@ -14,6 +14,9 @@ xcuserdata/
 # macOS
 .DS_Store
 
+# Claude 本地会话配置（不进仓库）
+.claude/settings.local.json
+
 # Demo artifacts / screenshots
 /tmp/xclientlab-shots/
 *.xcresult

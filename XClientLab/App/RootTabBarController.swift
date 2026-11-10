@@ -1,9 +1,9 @@
 import UIKit
 
-/// 五个实验入口的 UIKit 根容器。
+/// 三个入口的 UIKit 根容器：演示 → 实验室 → AI 工坊。
 ///
-/// 每个 tab 都是一个独立 `UINavigationController`，保证 push 层级互不污染；
-/// accessibilityIdentifier 与 SwiftUI 版本保持一致，UI 测试无需重写。
+/// 不再把 5 个模块全部塞进 tab bar。演示页先给“古法 vs AI”的对照，
+/// 实验室再按模块进入真实场景；AI 工坊单独承载 Skill / MCP / 命令桩。
 final class RootTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -13,29 +13,25 @@ final class RootTabBarController: UITabBarController {
 
         viewControllers = [
             makeNavigation(
-                root: PerformanceHomeViewController(),
-                module: .performance,
+                root: DemoComparisonViewController(),
+                title: "演示",
+                icon: "play.rectangle.fill",
+                identifier: "tab.demo",
                 tag: 0
             ),
             makeNavigation(
-                root: ExceptionsHomeViewController(),
-                module: .exceptions,
+                root: LabIndexViewController(),
+                title: "实验室",
+                icon: "square.grid.2x2.fill",
+                identifier: "tab.lab",
                 tag: 1
             ),
             makeNavigation(
-                root: ExchangeHomeViewController(),
-                module: .exchange,
-                tag: 2
-            ),
-            makeNavigation(
                 root: AINativeHomeViewController(),
-                module: .aiNative,
-                tag: 3
-            ),
-            makeNavigation(
-                root: ArchitectureHomeViewController(),
-                module: .architecture,
-                tag: 4
+                title: "AI 工坊",
+                icon: "sparkles",
+                identifier: "tab.ai",
+                tag: 2
             ),
         ]
         selectedIndex = 0
@@ -43,18 +39,20 @@ final class RootTabBarController: UITabBarController {
 
     private func makeNavigation(
         root: UIViewController,
-        module: LabModule,
+        title: String,
+        icon: String,
+        identifier: String,
         tag: Int
     ) -> UINavigationController {
         let navigation = UINavigationController(rootViewController: root)
         navigation.navigationBar.prefersLargeTitles = true
         navigation.navigationBar.tintColor = LabUI.cyan
         navigation.tabBarItem = UITabBarItem(
-            title: module.shortTitle,
-            image: UIImage(systemName: module.icon),
+            title: title,
+            image: UIImage(systemName: icon),
             tag: tag
         )
-        navigation.tabBarItem.accessibilityIdentifier = "tab.\(module.rawValue)"
+        navigation.tabBarItem.accessibilityIdentifier = identifier
         return navigation
     }
 }

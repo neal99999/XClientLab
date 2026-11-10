@@ -22,7 +22,7 @@ final class ComponentSnapshotTests: XCTestCase {
         let header = LabModuleHeaderView(module: .performance)
         assertSnapshot(
             of: host(header, height: 188),
-            as: .image(on: config),
+            as: .image(on: config, precision: 0.97, perceptualPrecision: 0.98),
             named: "module-header",
             record: record
         )
@@ -40,7 +40,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
         assertSnapshot(
             of: host(card, height: 158),
-            as: .image(on: config),
+            as: .image(on: config, precision: 0.97, perceptualPrecision: 0.98),
             named: "lab-card",
             record: record
         )
@@ -54,7 +54,7 @@ final class ComponentSnapshotTests: XCTestCase {
 
         assertSnapshot(
             of: host(row, height: 94),
-            as: .image(on: config),
+            as: .image(on: config, precision: 0.97, perceptualPrecision: 0.98),
             named: "metric-row",
             record: record
         )
@@ -67,7 +67,7 @@ final class ComponentSnapshotTests: XCTestCase {
         )
         assertSnapshot(
             of: host(callout, height: 106),
-            as: .image(on: config),
+            as: .image(on: config, precision: 0.97, perceptualPrecision: 0.98),
             named: "callout-ai",
             record: record
         )
