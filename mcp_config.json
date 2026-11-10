@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xclientlab-ios-tools": {
+      "command": "python3",
+      "args": ["scripts/mcp/ios_dev_mcp.py"],
+      "env": {
+        "PROJECT_ROOT": "."
+      }
+    }
+  }
+}
