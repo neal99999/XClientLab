@@ -227,10 +227,11 @@ final class RenderCaseViewController: LabBaseViewController {
             RunLoop.main.add(timer, forMode: .common)
             legacyTimer = timer
         case .optimized:
-            let timer = DispatchSource.makeTimerSource(queue: indicatorQueue)
+            // 定时器留在主线程:快照与版本号都只由主线程读写。
+            let timer = DispatchSource.makeTimerSource(queue: .main)
             timer.schedule(deadline: .now(), repeating: .milliseconds(100), leeway: .milliseconds(3))
             timer.setEventHandler { [weak self] in
-                self?.optimizedTick()
+                self?.scheduleOptimizedTick()
             }
             timer.resume()
             optimizedTimer = timer
@@ -284,29 +285,34 @@ final class RenderCaseViewController: LabBaseViewController {
         _ = acc
     }
 
-    /// 重构链路：后台算指标，主线程只拿最新版本做一次轻量提交。
-    private func optimizedTick() {
+    /// 重构链路：主线程取快照并打版本号，后台只算指标，结果回主线程按版本号合并。
+    /// `candles` / `version` 只在主线程读写，避免跨队列访问 Swift Array 的 UB。
+    private func scheduleOptimizedTick() {
+        guard isRunning else { return }
         version += 1
         let captured = version
-        var acc = 0.0
-        for i in 0 ..< 900 {
-            acc += cos(Double(i) * 0.02)
-        }
-        var next = candles
-        if var last = next.last {
-            last.close = max(1, last.close + Double.random(in: -18 ... 18))
-            last.high = max(last.high, last.close)
-            last.low = min(last.low, last.close)
-            next[next.count - 1] = last
-        }
-        let cost = max(0.05, abs(acc) * 0.01)
-        DispatchQueue.main.async { [weak self] in
-            guard let self, self.isRunning, captured == self.version else { return }
-            self.candles = next
-            self.tick += 1
-            self.chart.setCandles(next)
-            self.workTile.update(value: String(format: "%.1f", cost), color: LabUI.mint)
-            self.budgetBar.setProgress(min(1, cost / 16))
+        let snapshot = candles
+        indicatorQueue.async { [weak self] in
+            var acc = 0.0
+            for i in 0 ..< 900 {
+                acc += cos(Double(i) * 0.02)
+            }
+            var next = snapshot
+            if var last = next.last {
+                last.close = max(1, last.close + Double.random(in: -18 ... 18))
+                last.high = max(last.high, last.close)
+                last.low = min(last.low, last.close)
+                next[next.count - 1] = last
+            }
+            let cost = max(0.05, abs(acc) * 0.01)
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.isRunning, captured == self.version else { return }
+                self.candles = next
+                self.tick += 1
+                self.chart.setCandles(next)
+                self.workTile.update(value: String(format: "%.1f", cost), color: LabUI.mint)
+                self.budgetBar.setProgress(min(1, cost / 16))
+            }
         }
     }
 
