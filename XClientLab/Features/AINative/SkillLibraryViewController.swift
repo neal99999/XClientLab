@@ -641,9 +641,13 @@ private func makeTagFlowView(_ tags: [String], color: UIColor, availableWidth: C
         currentWidth = current.isEmpty ? tagWidth : currentWidth + 6 + tagWidth
         current.append(tag)
     }
-    if !current.isEmpty { rows.append(current) }
+    if !current.isEmpty {
+        rows.append(current)
+    }
 
     let column = labStack(spacing: 6)
-    for row in rows { column.addArrangedSubview(labTagRow(row, color: color)) }
+    for row in rows {
+        column.addArrangedSubview(labTagRow(row, color: color))
+    }
     return column
 }

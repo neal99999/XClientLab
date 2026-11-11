@@ -22,13 +22,15 @@ enum PerformanceDiagnostics {
     /// 首帧出现后调用；重复调用只记录第一次。
     static func markFirstFrame() {
         guard firstFrameUptime == 0 else { return }
-        if processStartUptime == 0 { captureProcessStart() }
+        if processStartUptime == 0 {
+            captureProcessStart()
+        }
         firstFrameUptime = ProcessInfo.processInfo.systemUptime
     }
 
     static var coldStartMilliseconds: Double {
         guard processStartUptime > 0, firstFrameUptime > 0 else { return 0 }
-        return max(0, (firstFrameUptime - processStartUptime) * 1_000)
+        return max(0, (firstFrameUptime - processStartUptime) * 1000)
     }
 
     /// ObjC runtime 中的类数量。Swift 类也会注册到 runtime，因此这是一个
