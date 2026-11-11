@@ -133,12 +133,16 @@ xcodebuild -resolvePackageDependencies -project XClientLab.xcodeproj -scheme XCl
 > Xcode GUI 首次构建会询问是否信任 SwiftLint 的 build tool plugin；命令行构建需
 > `-skipPackagePluginValidation`（Makefile 已内置）。
 
-## 交易所主线（首屏）
+## 首屏与 Tab 结构
 
-底部只有三个 Tab，默认落在「交易所专项」：
+底部有四个 Tab：**交易所专项 / 实验室 / 交付与防线 / AI 工坊**，默认落在「交易所专项」。交易所主线包含两个案例：
 
 1. **案例一 · 极端行情渲染性能重构**：100+ Tick/s 下旧链路全量重绘，主线程单次提交 ~21.8ms，订单 P95 超过 1s；切到「聚合 + 裁剪」后 API 不变、主线程只接收最新版本。页面可亲手切换两条链路、点「市价平仓」测延迟。
 2. **案例二 · 跨国弱网 + 订单状态竞态**：应用层 5s Ping / 2 次丢 Pong / 10s 无下行判定假连接；订单事件用单调 Sequence + pending → filled 单向状态机拒绝旧版本。页面可注入「电梯断网」和「HTTP 慢响应」，观察自愈与拒绝回滚。
+
+第 3 个 Tab「交付与防线」先讲 Figma 六态与像素快照闭环，再讲 AI 代码审查的信噪比治理、三轮收敛与风险分级，最后落到 Git Flow 分支 / 提交 / 发布纪律。
+
+![交付与防线](Docs/screenshots/09-delivery-guard.jpg)
 
 ![交易所主线](Docs/screenshots/07-exchange-story.jpg)
 ![渲染案例](Docs/screenshots/07-render-running.jpg)
@@ -160,6 +164,7 @@ xcodebuild -resolvePackageDependencies -project XClientLab.xcodeproj -scheme XCl
 | 03 交易所专项 | 3.2 高频盘口 | 83 条/s 全量推送、单槽节流、按价位 Diff、60/120Hz hitch 指标 |
 | 04 AI-Native | 4.1 MCP 通道纪律 + Skills | 通道状态机、越权命令拦截、内置 Markdown Skill 预览 |
 | 04 AI-Native | 4.2 Terminal-first 自动化 | 一键生成 XCTest 桩 / LLDB 断点 / MCP 计划并落盘 |
+| 04 AI-Native | 4.3 交付与防线 | Figma 六态 + 像素快照 ≤0.5%、信噪比过滤与 3 轮收敛熔断、Git Flow 与 Conventional Commits |
 | 05 模块化架构 | 5.1 依赖图与组装根 | 两个本地 SPM 包的单向依赖、容器注册表、singleton / transient 实测 |
 | 05 模块化架构 | 5.2 资源包 × 服务替换 | `Bundle.module` 的 JSON / 本地化 / 颜色资源、Bundle ↔ Mock 一行切换、UserDirectoryService 链路 |
 
@@ -179,7 +184,7 @@ XClientLab/
     ├── Exceptions/      # 2.1 UAF、2.2 Race、CrashProbe
     ├── Architecture/    # 5.1 依赖图、5.2 资源/替换、三方库自检
     ├── Exchange/        # 3.1 Reconnect、3.2 OrderBook
-    └── AINative/        # 4.1 Skills + MCP Channel、4.2 Terminal Automation
+    └── AINative/        # 4.1 Skills + MCP Channel、4.2 Terminal Automation、4.3 Delivery & QA
 
 Packages/
 ├── LabContracts/        # 本地 SPM：契约层（Domain / Ports / DI），0 依赖
@@ -211,8 +216,9 @@ Packages/
 1. 交易所专项 01：30 秒电梯版 → 亲手跑旧链路（40 FPS / 21.8ms / P95 1000+ms）→ 切重构链路 → 讲三步改造与结果。
 2. 交易所专项 02：注入电梯断网（2.8s 自愈）→ 注入 HTTP 慢响应（拒绝 seq=9 回滚）→ 讲心跳与单向状态机。
 3. 追问时再进「实验室」：性能五条链路（启动/UI/网络/内存/CPU）+ 两个实测、异常 2.1 / 2.2、交易所 3.1 / 3.2。
-4. AI 工坊：通道纪律、Skill 沉淀、自动化产物。
-5. 架构 5.1 → 5.2：先看单向依赖与容器，再切 Mock 证明替换成本为零。
+4. 交付与防线：Figma 六态 / 快照闭环 → 审查信噪比与收敛 → Git Flow 与 Conventional Commits。
+5. AI 工坊：通道纪律、Skill 沉淀、自动化产物。
+6. 架构 5.1 → 5.2：先看单向依赖与容器，再切 Mock 证明替换成本为零。
 
 完整讲解脚本见 [Docs/Interview-Walkthrough.md](Docs/Interview-Walkthrough.md)。
 

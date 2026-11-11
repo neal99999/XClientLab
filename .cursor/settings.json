@@ -1,0 +1,19 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "**/DerivedData": true,
+    "**/.build": true,
+    "**/fastlane/test_output": true,
+    "**/fastlane/build_output": true,
+    "**/build/output": true
+  },
+  "search.exclude": {
+    "**/DerivedData": true,
+    "**/.build": true,
+    "**/vendor/bundle": true,
+    "**/fastlane/test_output": true
+  },
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true
+}

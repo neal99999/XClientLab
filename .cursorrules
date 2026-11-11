@@ -1,0 +1,17 @@
+# XClientLab - Cursor AI Rules & Engineering Baseline
+
+You are working in **XClientLab**, an advanced iOS engineering sandbox and trading performance showcase.
+
+## Core Identity & Stack
+- iOS 18.0+, Swift 5 language mode, Xcode 27+ (`objectVersion = 110`).
+- **Pure Code UIKit + SnapKit** (No SwiftUI, No Storyboard/XIB). Dark mode theme (`LabUI`).
+- Unidirectional Data Flow: `ViewModel.ViewState` ➔ `render(_:)`.
+- Dependency Flow: `App Target ➔ LabFeatureKit ➔ LabContracts (0 external dependencies)`.
+
+## Absolute Guardrails (Non-Negotiable)
+1. **Financial Numbers**: Strictly prohibit `Double` or `Float` for currency/amounts. Use `String` or `Decimal`.
+2. **Idempotency**: Never auto-retry non-idempotent write endpoints (order, cancel, transfer).
+3. **Escaping Closures**: Mandatory `[weak self]` in escaping closures or async tasks.
+4. **Main Thread Budget**: 16ms frame budget. Heavy JSON (>50 items) and regex must run in background queues.
+5. **UI Six States**: Every screen/card must handle `Loaded`, `Loading`, `Empty`, `Error`, `Offline`, and `Boundary`.
+6. **Commands**: Always use `Makefile` targets (`make build`, `make test`, `make ci`, `make lint`, `make cd-package-sim`).

@@ -94,7 +94,7 @@
     - 实现 `/submit-pr` 自动化全流程：**环境核查 ➔ 自动化自测 (`make lint` + `make test`) ➔ 换脑独立 AI 预审 ➔ 生成结构化报告 ➔ 等待人类审批 ➔ 远端推流并提 PR**。
 
 ### 6. MCP (打通底层工具链)
-*   **位置**：`.claude/mcp.json`, `mcp_config.json`, `scripts/mcp/ios_dev_mcp.py`
+*   **位置**：`.claude/mcp.json`, `.claude/mcp/server.py`, `mcp.json`
 *   **工程设计**：
     - 原生 Python 实现无第三方依赖的 JSON-RPC 2.0 stdio 服务；
     - 将 `xcodebuild`、`simctl` 和 `lldb` 封装为 AI Agent 可调用的原子 Tools；

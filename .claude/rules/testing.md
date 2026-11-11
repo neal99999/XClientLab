@@ -1,33 +1,35 @@
 ---
-description: IBIT 的构建与验证规则：主 App 无测试 target，只能用编译 + 手动回归，禁止把"编译通过"说成"功能验证通过"
+description: XClientLab 构建验证与测试规范：单元测试、快照测试、UI 回归与确定性证据链
 paths:
-  - "**/*.swift"
-  - "MCIBIT/**"
+  - "XClientLabTests/**"
+  - "XClientLabUITests/**"
+  - "XClientLab/**"
 ---
-# 测试与验证
+# 自动化测试与工程验证规范
 
-## 能自动化的
-- 本地 SwiftPM 包有测试，改到它们时必须跑：
-  - `cd MCIBIT/SwiftPM/Wrapper && swift test`
-  - `cd MCIBIT/SwiftPM/TrueTime && swift test`
-- 编译验证：
-  ```bash
-  xcodebuild -workspace MCIBIT/MCIBIT.xcworkspace -scheme MCIBIT -configuration Debug \
-    -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
-  ```
-  首次构建可能因内网私有 pod（MCCommon、MAH_user）失败；失败就如实报告「未完成编译验证」，不要绕过或改 Podfile。
-- 只跑局部时说明范围，例如 `-workspace ... -scheme MCIBIT build` 的耗时通常以分钟计，不要反复全量构建。
+## 1. 自动化测试分层结构
+本项目包含完整的可自动化验证测试套件（基线 44+ 用例，0 失败）：
+1. **领域逻辑单元测试 (`XClientLabTests`)**：
+   - 金额/时间格式化换算、行情计算、委托挂单规则校验、Sequence 版本号比对；
+2. **ViewModel 与异步测试 (`XClientLabTests`)**：
+   - 基于 Mock 的网络服务响应、状态流转（loading/loaded/failed）与 Combine 管道异步期望验证；
+3. **UI 组件快照测试 (`XClientLabTests/ComponentSnapshotTests.swift`)**：
+   - 基于 `swift-snapshot-testing` 验证设计稿还原度，差异率阈值收敛至 `0.00% PASS`；
+4. **核心 UI 链路测试 (`XClientLabUITests`)**：
+   - 验证交易所首屏加载、极端行情压力注入、弱网切断与自愈链路。
 
-## 不能自动化的
-- 主 App **没有 XCTest / UI Test target**，业务逻辑没有自动化回归手段。
-- 因此任何业务改动都必须列出手动回归场景，至少覆盖：
-  - 进入/退出页面、返回手势、复用到该页面的其他入口
-  - 切币对、切周期、页面消失、退登、前后台切换（WebSocket 订阅）
-  - 深色/浅色主题、切换语言（会重建 TabBar 与部分导航栈）
-  - 金额/数量展示与下单/撤单（非幂等接口）
-  - 弱网、超时、接口业务失败、登录失效
+## 2. 命令行与 CI 验证命令
+所有改动在提交前必须经过本地测试验证：
+```bash
+# 运行全部测试（Fastlane Scan 驱动，分步执行防竞争）
+make ci
+# 或直接运行：
+make test
+```
 
-## 表述红线
-- 没跑过的检查不要写成「已验证」；写「未验证 + 原因 + 最小验证步骤」。
-- 编译成功只代表编译成功，不代表功能正确；禁止编造测试通过率、覆盖率、FPS、耗时、内存数字。
-- 改了共享状态（单例、通知、全局 Provider）时，回归范围要主动放大并在报告里写明。
+## 3. 证据链表述红线
+- 严禁空口宣称“测试全部通过”或“性能已无异常”；
+- 必须给出明确的量化证据：
+  - 测试用例执行数与通过率；
+  - Instruments Time Profiler / HitchMonitor 的实际耗时指标（如 `21.8ms ➔ 3.2ms`）；
+  - 编译器警告数与 SwiftLint 扫描报告。

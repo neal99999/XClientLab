@@ -10,7 +10,7 @@
 
 > 这是一个 iOS 性能与稳定性 Sandbox。每个场景都先故意制造一个可重复的异常，再用 Instruments / LLDB / 指标面板拿出证据，最后说明 AI MCP 如何把取证过程工程化。
 
-工程采用 UIKit + MVVM + Combine，页面全部代码构建、约束用 SnapKit，没有 SwiftUI / Storyboard；现场可以直接打开 Xcode Debug View Hierarchy 讲真实 UIView 树。底部有三个 Tab：**交易所专项 / 实验室 / AI 工坊**。主线先把交易所的两个案例讲透，性能、异常、架构都放到「实验室」里作为追问区。
+工程采用 UIKit + MVVM + Combine，页面全部代码构建、约束用 SnapKit，没有 SwiftUI / Storyboard；现场可以直接打开 Xcode Debug View Hierarchy 讲真实 UIView 树。底部有四个 Tab：**交易所专项 / 实验室 / 交付与防线 / AI 工坊**。主线先把交易所的两个案例讲透，性能、异常、架构都放到「实验室」里作为追问区。
 
 ---
 
