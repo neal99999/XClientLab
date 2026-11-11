@@ -1,11 +1,11 @@
 import UIKit
 
-/// 三个入口的 UIKit 根容器：交易所专项 → 实验室 → AI 工坊。
+/// 四个入口的 UIKit 根容器：交易所专项 → 实验室 → 交付与防线 → AI 工坊。
 ///
 /// 第一屏不再铺“AI 对照”表格，而是直接进入面试主线：
 /// 两个交易所案例的「现象 → 难点 → 动作 → 结果」。实验室只作为追问时的
-/// 证据抽屉；AI 工坊直接进入「五位一体」架构页，把架构、Skills 与 MCP
-/// 通道纪律放在同一屏讲完。
+/// 证据抽屉；交付与防线把 Figma 像素还原、代码审查与 Git Flow 做成证据链；
+/// AI 工坊讲「五位一体」架构、Skills 与 MCP 通道纪律。
 final class RootTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,12 +29,19 @@ final class RootTabBarController: UITabBarController {
                 tag: 1
             ),
             makeNavigation(
+                root: DeliveryGuardViewController(),
+                title: "交付与防线",
+                icon: "checkmark.shield.fill",
+                identifier: "tab.delivery",
+                tag: 2
+            ),
+            makeNavigation(
                 root: SkillLibraryViewController(),
                 title: "AI 工坊",
                 icon: "sparkles",
                 identifier: "tab.ai",
-                tag: 2
-            ),
+                tag: 3
+            )
         ]
         selectedIndex = 0
     }

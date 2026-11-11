@@ -272,6 +272,8 @@ final class LabMetricTileView: UIView {
 
         valueLabel.text = value
         valueLabel.textColor = color
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = 0.70
         unitLabel.text = unit
         detailLabel.text = detail
 
@@ -283,7 +285,10 @@ final class LabMetricTileView: UIView {
         valueRow.addArrangedSubview(spacer)
 
         let stack = labStack(spacing: 6)
-        stack.addArrangedSubview(labLabel(label.uppercased(), size: 9, weight: .semibold, color: LabUI.textTertiary, mono: true, lines: 1))
+        let labelTitle = labLabel(label.uppercased(), size: 9, weight: .semibold, color: LabUI.textTertiary, mono: true, lines: 1)
+        labelTitle.adjustsFontSizeToFitWidth = true
+        labelTitle.minimumScaleFactor = 0.75
+        stack.addArrangedSubview(labelTitle)
         stack.addArrangedSubview(valueRow)
         if detail != nil {
             stack.addArrangedSubview(detailLabel)
