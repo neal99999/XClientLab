@@ -72,6 +72,7 @@
     5.  `network-race-guard`：弱网假死连接探测（应用层心跳 + Jitter 重连）与单调 Sequence 版本防回滚状态机（对应场景 3.1 & 3.2）。
     6.  `review-pr`：定义只读代码审查的标准流程，优先筛查“资金风险 ➔ 线程安全 ➔ 订阅泄漏 ➔ 架构边界”。
     7.  `security-review`：安全合规审计清单（防 Token/密钥硬编码、明文传输、反混淆）。
+    8.  `figma-to-uikit`：Figma 设计稿像素级还原技能，包含 Auto Layout 映射、Design Token 对齐、六态防御矩阵与 Snapshot 快照比对闭环。
 
 ### 3. Agents (多角色协作)
 *   **位置**：`.claude/agents/`
@@ -125,6 +126,18 @@
     2. **聚焦致命缺陷**：只审查“资金算力、主线程阻塞、单例引用泄露、订单非幂等重试”四大维度；
     3. **收敛机制**：同类问题汇总清单一次性指出，前几轮看全局兼容性，后几轮只查局部修改，3 轮内必须收敛或交由人类仲裁。
 
+### 案例 4：Figma 视觉稿到像素级代码的六态防御与快照验证闭环
+*   **古法痛点**：直接把 Figma 截图丢给 AI 存在“三大失控”：
+    1. **数值膨胀与绝对尺寸**：AI 倾向硬编码数值（如 `make.width.equalTo(143)`、十六进制色值），换机型直接撕裂，破坏 Design System；
+    2. **只写“理想态”**：设计稿通常只提供数据塞满时的完美视觉稿，一旦网络慢、无数据、接口报错直接白屏或崩溃；
+    3. **人眼肉测**：靠目测“看着差不多”，无法提供确定性的像素级还原依据。
+*   **AI-Native 解法**：
+    1. **Auto Layout ➔ SnapKit 声明式映射**：将 Figma 的 Vertical/Horizontal、Fill/Hug/Fixed 转换为标准 SnapKit 约束与抗压缩/抗拉伸优先级（Hugging / Compression Resistance），间距强制对齐 4pt/8pt 网格；
+    2. **Design Tokens 查表替换**：自动查表将色值与字体映射至 `LabUI` 语义 Token（如 `LabUI.backgroundPrimary`、`LabUI.font(16, weight: .bold)`）；
+    3. **UI 六态防御矩阵（The 6-State Matrix）**：写代码前必须输出《六态补全与边界确认表》（Loading、Loaded、Empty、Error & Retry、Boundary & Extreme、Debounce），必须暂停等待开发者批准（“人来掌舵”）；
+    4. **ViewState 单向状态机**：页面仅暴露唯一的 `render(_ state: ViewState)` 入口，彻底消灭布尔值混乱；
+    5. **Snapshot 快照比对闭环**：通过 `SnapshotTesting` 进行机器级像素比对（<=0.5% 容差），结合 Diff 差分图自动化反向修正 SnapKit 约束。
+
 ---
 
 ## 五、面试 3 分钟精讲话术模版 (Elevator Pitch)
@@ -140,10 +153,13 @@
 > - **在代码规范上**，我通过 `.claude/rules` 注入了金融交易所级的红线（比如严禁 Double 混算资金、下单非幂等接口禁重试）；  
 > - **在质量门禁上**，我不把审查压力留到最后。我写了 Git `pre-commit` 增量钩子自动跑 SwiftLint，毫秒级拦截语法违规；  
 > - **在复杂调试上**，针对 iOS 最难搞的系统栈异步崩溃，我把 senior 工程师大脑里的调试经验做成了 `lldb-async-crash` Skill，强制 Agent 按状态机‘中断 ➔ 批量取证 ➔ 单次恢复’，不破坏第一现场；  
+> - **在 UI 交付与视觉还原上**，针对 Figma 稿件直接喂给 AI 容易硬编码、漏异常态的通病，我制定了 `figma-to-uikit` Skill 和 `/figma-to-page` 命令，执行严苛的‘六态防御矩阵’（加载、成功、缺省、错误重试、边界极端、交互防抖），必须人先确认状态补全方案；同时强制映射工程的 Design Tokens 与 SnapKit 约束，最后通过 `swift-snapshot-testing` 机器级快照比对（<=0.5% 误差）完成自动化像素级验收，彻底告别人眼肉测；  
 > - **在工具连接上**，我用 Python 实现了符合 JSON-RPC 标准的本地 MCP Server，让 Agent 可以直接驱动 `xcodebuild`、`simctl` 和 `lldb`。”
 
 ### 3. 案例举证（60 秒，结合项目亮剑）
-> “以我们项目里的 **场景 2.1 异步 UAF 崩溃** 为例：崩溃日志只剩 `libdispatch` 的汇编指令。以往纯靠人工盲排，现在我直接唤起 `perf-debugger` 子代理，它调用 MCP 工具和 LLDB Skill 批量读取 ARM64 寄存器，从 `0x1d` 极低地址秒级断定出对象生命周期倒挂，并由独立的 `code-reviewer` 代理做交叉验证。  
+> “以我们项目里的两个攻坚场景为例：  
+> 第一是 **场景 2.1 异步 UAF 崩溃**：崩溃日志只剩 `libdispatch` 的汇编指令。以往纯靠人工盲排，现在我直接唤起 `perf-debugger` 子代理，它调用 MCP 工具和 LLDB Skill 批量读取 ARM64 寄存器，从 `0x1d` 极低地址秒级断定出对象生命周期倒挂，并由独立的 `code-reviewer` 代理做交叉验证。  
+> 第二是 **复杂 UI 页面落地**：面对只有满数据态的 Figma 稿，输入 `/figma-to-page` 后，AI 先推导出缺少的空状态、断网重试和文字截断保护，等待我确认后，纯代码生成 SnapKit + ViewState 架构代码，并产出 SnapshotTesting 快照测试，用机器比对代替人工眼测。  
 > 最后通过我编排的 `/submit-pr` 工作流，AI 跑完自动化自测并完成降噪预审后，在终端呈现一份结构化报告，**必须经过我人工输入确认批准后，才会推流创建 PR**。”
 
 ### 4. 升华总结（30 秒，体现工程素养）

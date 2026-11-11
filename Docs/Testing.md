@@ -88,9 +88,9 @@ XClientLabTests/__Snapshots__/ComponentSnapshotTests/
 - 实验室 → 性能模块 → 1.1 入口 push 到「1.1 CPU 卡顿」；
 - 点 `cpu.run` 后，按钮从 `BLOCKING…` 回到 `RUN BLOCKING WORK`（真实跑完负载）；
 - CPU RUN 途中点 `cpu.reset` 不崩溃（回归 UITableView 清空崩溃）；
-- 实验室 → 交易所模块 → 3.2 → `START FEED` → `STOP FEED` → `START FEED`。
+- 实验室 → 性能模块 → 03 网络请求优化 → 高频盘口 → `START FEED` → `STOP FEED` → `START FEED`。
 
-定位符统一使用 `accessibilityIdentifier`（`tab.lab`、`lab.performance`、`lab.exchange`、`perf.scenario.cpu`、`exc.scenario.book`、`case.render`、`cpu.run`、`book.toggle`），不依赖中文文案的层级。
+定位符统一使用 `accessibilityIdentifier`（`tab.lab`、`lab.performance`、`perf.topic.network`、`perf.evidence.book`、`perf.scenario.cpu`、`case.render`、`cpu.run`、`book.toggle`），不依赖中文文案的层级。
 
 ## 7. Fastlane + CI
 

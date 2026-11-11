@@ -208,7 +208,11 @@ final class SkillDetailViewController: LabBaseViewController {
             subtitle: skill.subtitle,
             accent: skill.accent
         ))
-        add(labTagRow(skill.tags, color: skill.accent))
+        add(makeTagFlowView(
+            skill.tags,
+            color: skill.accent,
+            availableWidth: UIScreen.main.bounds.width - LabUI.pageInset * 2
+        ))
         let copy = LabButton(title: "COPY MARKDOWN", style: .secondary, accent: skill.accent, systemImage: "doc.on.doc")
         copy.accessibilityIdentifier = "skill.copy"
         copy.addAction(UIAction { [weak self] _ in
@@ -497,7 +501,11 @@ private extension SkillLibraryViewController {
 
         card.add(labLabel(skill.title, size: 16, weight: .semibold, color: LabUI.textPrimary, rounded: true, lines: 0))
         card.add(labLabel(skill.subtitle, size: 11.5, color: LabUI.textSecondary, lines: 0))
-        card.add(labTagRow(skill.tags, color: skill.accent))
+        card.add(makeTagFlowView(
+            skill.tags,
+            color: skill.accent,
+            availableWidth: UIScreen.main.bounds.width - LabUI.pageInset * 2 - 28
+        ))
         card.add(makeOpenButton(skill))
         return card
     }
@@ -614,4 +622,28 @@ private enum SkillFilter: Int, CaseIterable {
     var accent: UIColor {
         group?.accent ?? LabUI.violet
     }
+}
+
+/// 标签超过一行时按可用宽度自动折行，避免 4 个标签把最后一个裁成 "CHUNI"。
+private func makeTagFlowView(_ tags: [String], color: UIColor, availableWidth: CGFloat) -> UIView {
+    let font = LabUI.font(9.5, weight: .bold, mono: true)
+    var rows: [[String]] = []
+    var current: [String] = []
+    var currentWidth: CGFloat = 0
+
+    for tag in tags {
+        let tagWidth = (tag.uppercased() as NSString).size(withAttributes: [.font: font]).width + 16
+        if !current.isEmpty, currentWidth + 6 + tagWidth > availableWidth {
+            rows.append(current)
+            current = []
+            currentWidth = 0
+        }
+        currentWidth = current.isEmpty ? tagWidth : currentWidth + 6 + tagWidth
+        current.append(tag)
+    }
+    if !current.isEmpty { rows.append(current) }
+
+    let column = labStack(spacing: 6)
+    for row in rows { column.addArrangedSubview(labTagRow(row, color: color)) }
+    return column
 }

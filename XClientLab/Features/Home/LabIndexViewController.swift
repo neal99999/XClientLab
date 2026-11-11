@@ -1,7 +1,7 @@
 import SnapKit
 import UIKit
 
-/// 第二层入口：把 5 个模块收进一张“实验索引”，避免底部 tab 被模块数量撑满。
+/// 第二层入口：把 4 个模块收进一张“实验索引”，避免底部 tab 被模块数量撑满。
 /// 演示动线是「先讲交易所两个案例，再从这里按追问进入真实实验」。
 final class LabIndexViewController: LabBaseViewController {
     init() {
@@ -20,7 +20,7 @@ final class LabIndexViewController: LabBaseViewController {
         add(LabScreenTitleView(
             index: "LAB / ALL DRILLS",
             title: "选择实验模块",
-            subtitle: "5 个模块：性能 5 条优化链路 + 2 个实测，异常 2 个、交易所 2 个、架构 2 个。每个场景都能单独复现。",
+            subtitle: "4 个模块：性能 5 条优化链路 + 2 个实测，异常 2 个、架构 2 个。每个场景都能单独复现。",
             accent: LabUI.cyan
         ))
 
@@ -29,7 +29,7 @@ final class LabIndexViewController: LabBaseViewController {
         add(LabSectionHeaderView(
             kicker: "MODULES",
             title: "模块索引",
-            trailing: "05 AVAILABLE",
+            trailing: "04 AVAILABLE",
             accent: LabUI.cyan
         ))
 
@@ -44,15 +44,6 @@ final class LabIndexViewController: LabBaseViewController {
         ))
         add(makeCard(
             index: "02",
-            title: "交易所专项",
-            subtitle: "弱网重连状态机与 83 条/秒盘口节流、差分更新。",
-            tags: ["WebSocket", "Backoff", "Diff"],
-            accent: LabUI.mint,
-            identifier: "lab.exchange",
-            destination: { ExchangeHomeViewController() }
-        ))
-        add(makeCard(
-            index: "03",
             title: "异常处理攻坚",
             subtitle: "DispatchSource UAF 与 8 线程数据竞争，真实崩溃现场。",
             tags: ["LLDB", "UAF", "TSan"],
@@ -61,7 +52,7 @@ final class LabIndexViewController: LabBaseViewController {
             destination: { ExceptionsHomeViewController() }
         ))
         add(makeCard(
-            index: "05",
+            index: "03",
             title: "模块化架构",
             subtitle: "两个本地 SPM 包、POP + DI、Bundle.module 资源替换。",
             tags: ["SPM", "DI", "Bundle.module"],
@@ -94,7 +85,7 @@ final class LabIndexViewController: LabBaseViewController {
             color: LabUI.textSecondary,
             lines: 0
         ))
-        let steps = labStack(axis: .horizontal, spacing: 6, distribution: .fillEqually)
+        let steps = labStack(axis: .horizontal, spacing: 6, alignment: .center, distribution: .fillEqually)
         for (index, text) in ["01 对照", "02 验证", "03 AI 工坊"].enumerated() {
             let chip = labLabel(text, size: 9, weight: .semibold, color: LabUI.cyan, mono: true, lines: 1)
             chip.textAlignment = .center
