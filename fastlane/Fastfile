@@ -383,7 +383,20 @@ platform :ios do
     if pgyer_key
       ipa_path = File.expand_path("../build/output/XClientLab.ipa", __dir__)
       UI.message("📤 Uploading Ad-Hoc build to Pgyer (蒲公英)...")
-      sh("curl -F '_api_key=#{pgyer_key}' -F 'file=@#{ipa_path}' https://www.pgyer.com/apiv2/app/upload")
+      response = sh(
+        "curl", "--fail", "--silent", "--show-error",
+        "-F", "file=@#{ipa_path}",
+        "-F", "_api_key=#{pgyer_key}",
+        "https://www.pgyer.com/apiv2/app/upload",
+        log: false
+      )
+      require "json"
+      begin
+        result = JSON.parse(response)
+      rescue JSON::ParserError
+        UI.user_error!("Pgyer upload returned a non-JSON response: #{response}")
+      end
+      UI.user_error!("Pgyer upload failed: #{result["message"] || response}") unless result["code"] == 0
       UI.success("🎉 Successfully published to Pgyer!")
     else
       UI.message("ℹ️ PGYER_API_KEY not configured. Ad-Hoc IPA is available in build/output/XClientLab.ipa")

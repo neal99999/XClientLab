@@ -303,6 +303,8 @@ final class DeliveryGuardViewModel: ObservableObject {
     }
 
     func selectAssetState(_ assetState: AssetState) {
+        // 用户显式切换状态时作废在途的 retry 回调，避免慢响应覆盖新状态。
+        retryToken = UUID()
         if assetState == .debounce {
             lastAcceptedRefresh = nil
             var next = state
@@ -322,7 +324,9 @@ final class DeliveryGuardViewModel: ObservableObject {
         updateAssetState(.loading)
         // 留出 0.75s 让骨架屏可见，模拟真实网络往返。
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) { [weak self] in
-            guard let self, self.retryToken == token else { return }
+            guard let self,
+                  self.retryToken == token,
+                  self.state.assetState == .loading else { return }
             self.updateAssetState(.loaded)
         }
     }

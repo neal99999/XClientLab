@@ -214,20 +214,16 @@ jobs:
           PGYER_API_KEY: ${{ secrets.PGYER_API_KEY }}
           CUSTOM_BUILD_NUMBER: ${{ inputs.build_number }}
           RELEASE_CHANGELOG: ${{ inputs.changelog }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
         run: |
           set -euo pipefail
           mkdir -p build/output
 
-          # 决定分发渠道：若为手触取输入，否则主干/标签默认走 testflight
-          TARGET_CHANNEL="${{ inputs.channel }}"
-          if [ -z "$TARGET_CHANNEL" ]; then
-            TARGET_CHANNEL="testflight"
-          fi
+          # 决定分发渠道：若为手触取输入，否则主干/标签默认走 testflight。
+          # 只读取 env，禁止在 run 脚本里展开 ${{ inputs.* }}，避免脚本注入。
+          TARGET_CHANNEL="${INPUT_CHANNEL:-testflight}"
 
-          CHANGELOG="${{ inputs.changelog }}"
-          if [ -z "$CHANGELOG" ]; then
-            CHANGELOG="Release triggered by GitHub Actions (commit: ${GITHUB_SHA:0:7})"
-          fi
+          CHANGELOG="${RELEASE_CHANGELOG:-Release triggered by GitHub Actions (commit: ${GITHUB_SHA:0:7})}"
 
           echo "🚀 Executing delivery pipeline for channel: $TARGET_CHANNEL"
 

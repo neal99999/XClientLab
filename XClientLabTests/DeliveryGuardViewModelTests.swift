@@ -112,4 +112,17 @@ final class DeliveryGuardViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.state.assetState, .extreme)
         XCTAssertEqual(viewModel.state.assetState.snapshotDiff, 0.34, accuracy: 0.0001)
     }
+
+    func testSelectingAnotherStateDuringRetryCancelsPendingTransition() async throws {
+        let viewModel = DeliveryGuardViewModel()
+        viewModel.selectAssetState(.error)
+        viewModel.retryAsset()
+        XCTAssertEqual(viewModel.state.assetState, .loading)
+
+        // 在 retry 的 0.75s 窗口内切换状态，旧回调不得把界面回退到 loaded。
+        viewModel.selectAssetState(.extreme)
+
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertEqual(viewModel.state.assetState, .extreme)
+    }
 }

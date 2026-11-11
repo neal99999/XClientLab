@@ -24,6 +24,21 @@ import glob
 SERVER_NAME = "xclientlab-ios-mcp"
 SERVER_VERSION = "2.0.0"
 
+# 只允许调用 Fastfile 中已定义的 lane，避免被外部内容诱导执行任意命令。
+ALLOWED_FASTLANE_LANES = {
+    "test",
+    "build",
+    "build_simulator",
+    "package_simulator",
+    "beta",
+    "adhoc",
+    "lint",
+    "format_check"
+}
+
+# 截图只允许落在工程内的截图画布目录，防止任意路径写入。
+SCREENSHOT_DIR = "Docs/screenshots"
+
 TOOLS = [
     {
         "name": "xcode_build",
@@ -189,6 +204,14 @@ def handle_call_tool(name, arguments):
 
     elif name == "fastlane_run":
         lane = arguments.get("lane", "test")
+        if lane not in ALLOWED_FASTLANE_LANES:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"❌ 拒绝执行未授权的 Fastlane lane: {lane}。允许的 lane: {', '.join(sorted(ALLOWED_FASTLANE_LANES))}"
+                }],
+                "isError": True
+            }
         extra_args = arguments.get("args", "")
         cmd = ["bundle", "exec", "fastlane", lane]
         if extra_args:
@@ -217,7 +240,16 @@ def handle_call_tool(name, arguments):
 
     elif name == "simctl_screenshot":
         out_path = arguments.get("output_path", "Docs/screenshots/mcp_capture.png")
-        full_out_path = os.path.join(project_root, out_path)
+        screenshot_root = os.path.realpath(os.path.join(project_root, SCREENSHOT_DIR))
+        full_out_path = os.path.realpath(os.path.join(project_root, out_path))
+        if os.path.commonpath([screenshot_root, full_out_path]) != screenshot_root:
+            return {
+                "content": [{
+                    "type": "text",
+                    "text": f"❌ 非法截图路径: {out_path}。截图只允许写入 {SCREENSHOT_DIR}/ 目录。"
+                }],
+                "isError": True
+            }
         os.makedirs(os.path.dirname(full_out_path), exist_ok=True)
         cmd = ["xcrun", "simctl", "io", "booted", "screenshot", full_out_path]
         res = subprocess.run(cmd, capture_output=True, text=True, env=env)
@@ -350,7 +382,13 @@ def main():
         elif method == "tools/call":
             name = params.get("name")
             arguments = params.get("arguments", {})
-            result = handle_call_tool(name, arguments)
+            try:
+                result = handle_call_tool(name, arguments)
+            except Exception as exc:
+                result = {
+                    "content": [{"type": "text", "text": f"❌ 工具执行失败: {exc}"}],
+                    "isError": True
+                }
             resp = {
                 "jsonrpc": "2.0",
                 "id": req_id,

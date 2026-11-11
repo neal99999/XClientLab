@@ -28,6 +28,13 @@ XClientLabTests/Generated/
 fastlane/test_output/
 vendor/bundle/
 .bundle/
+fastlane/.env*
+!fastlane/.env.example
+
+# MCP local credentials
+.claude/mcp/.env
+mcp/.env
+__pycache__/
 
 # Instruments traces & Local backups
 *.trace/
