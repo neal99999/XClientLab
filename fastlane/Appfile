@@ -1,0 +1,11 @@
+# Appfile for XClientLab
+# For more information: https://docs.fastlane.tools/advanced/#appfile
+
+app_identifier("e88ebfa25316fd8c.XClientLab")
+team_id("J2Y83LQZMT")
+
+# App Store Connect Team ID (defaults to Developer Portal team_id if same)
+itc_team_id(ENV["ITC_TEAM_ID"] || "J2Y83LQZMT")
+
+# Optional Apple ID account email for 2FA / Session logins
+apple_id(ENV["APPLE_ID"]) if ENV["APPLE_ID"]

@@ -1,7 +1,5 @@
 import Combine
 import Foundation
-
-import Foundation
 import UIKit
 
 @MainActor
@@ -83,7 +81,9 @@ final class RaceScenarioViewModel: NSObject, ObservableObject {
         case unsafe
         case locked
 
-        var id: String { rawValue }
+        var id: String {
+            rawValue
+        }
 
         var title: String {
             switch self {
@@ -94,11 +94,13 @@ final class RaceScenarioViewModel: NSObject, ObservableObject {
     }
 
     enum Scale: Int, CaseIterable, Identifiable {
-        case small = 50_000
+        case small = 50000
         case medium = 150_000
         case large = 300_000
 
-        var id: Int { rawValue }
+        var id: Int {
+            rawValue
+        }
 
         var title: String {
             switch self {
@@ -145,7 +147,7 @@ final class RaceScenarioViewModel: NSObject, ObservableObject {
             let start = CFAbsoluteTimeGetCurrent()
 
             DispatchQueue.concurrentPerform(iterations: self.threadCount) { _ in
-                for _ in 0..<iterations {
+                for _ in 0 ..< iterations {
                     if mode == .locked {
                         lock.lock()
                         counter.pointee += 1

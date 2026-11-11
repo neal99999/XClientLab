@@ -33,8 +33,14 @@ final class AllocationStormViewController: LabBaseViewController, UITableViewDat
     )
     private let table = UITableView(frame: .zero, style: .plain)
 
-    init() { super.init(accent: LabUI.mint) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.mint)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -131,12 +137,15 @@ final class AllocationStormViewController: LabBaseViewController, UITableViewDat
         viewModel.isRunning ? viewModel.stop() : viewModel.start()
     }
 
-    @objc private func resetTapped() { viewModel.reset() }
+    @objc private func resetTapped() {
+        viewModel.reset()
+    }
+
     @objc private func intensityChanged() {
         viewModel.intensity = AllocationStormViewModel.Intensity(rawValue: intensityControl.selectedSegmentIndex + 1) ?? .standard
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         viewModel.feed.count
     }
 
@@ -176,7 +185,10 @@ private final class MarketCell: UITableViewCell {
         }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func configure(row: MarketRow, checksum: Int) {
         symbol.text = row.symbol

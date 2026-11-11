@@ -1,0 +1,23 @@
+---
+description: Testing guidelines for XClientLab: unit tests, ViewModel tests, ComponentSnapshotTests (0.00% diff), and UI tests
+globs: *Tests*/**/*.swift
+alwaysApply: false
+---
+# Testing & Verification Guidelines
+
+## 1. Test Suite Architecture
+XClientLab maintains a zero-failure baseline with 44+ automated tests:
+1. **Domain Unit Tests (`XClientLabTests`)**:
+   - Currency/time conversion, orderbook aggregation, sequence comparison.
+2. **ViewModel & Async Tests (`XClientLabTests`)**:
+   - Mock service protocols, Combine pipeline assertions with `expectation`.
+3. **UI Snapshot Tests (`ComponentSnapshotTests.swift`)**:
+   - Powered by `swift-snapshot-testing`.
+   - Ensure visual fidelity against Figma tokens (`DIFF: 0.00% PASS`).
+4. **UI Integration Tests (`XClientLabUITests`)**:
+   - Scenario validation for extreme market ticker stress, kill switch, and network cut.
+
+## 2. Command Execution
+- Run unit & UI tests: `make test`
+- Run Fastlane scan pipeline: `make ci`
+- Avoid full package dependency resets unless `Package.resolved` changes.

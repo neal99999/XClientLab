@@ -53,7 +53,10 @@ final class MarkdownPreviewView: UIView {
         }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     private static func attributed(_ text: String, color: UIColor) -> NSAttributedString {
         guard let parsed = try? AttributedString(

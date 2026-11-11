@@ -1,46 +1,5 @@
 import UIKit
 
-// MARK: - 01 Performance
-
-final class PerformanceHomeViewController: ModuleHomeViewController {
-    init() {
-        super.init(
-            module: .performance,
-            metrics: [
-                .init("TARGET", "500", unit: "ms", detail: "可感知卡顿阈值", color: LabUI.coral),
-                .init("FRAME", "16.7", unit: "ms", detail: "60Hz 帧预算", color: LabUI.cyan),
-                .init("SCENARIOS", "02", unit: "drills", detail: "CPU / 内存", color: LabUI.mint),
-            ],
-            missionTitle: "性能不是「感觉卡」",
-            missionBody: "把模糊的用户反馈压缩成可复现的 trace：先制造确定的异常，再让 Instruments 给出时间、线程、调用栈三层证据。两个场景都自带实时观测面板，演示时不需要外接仪器就能看到波形。",
-            scenarios: [
-                .init(
-                    index: "1.1",
-                    title: "主线程 JSON 风暴",
-                    subtitle: "同步解析 6,000 条记录 + 密集正则，连续制造 >500ms 卡顿。",
-                    tags: ["Time Profiler", "Hitches", "Main Thread"],
-                    expectation: "worst pass > 500ms / dropped frames",
-                    identifier: "perf.scenario.cpu",
-                    destination: { CPUStallViewController() }
-                ),
-                .init(
-                    index: "1.2",
-                    title: "Allocations 锯齿",
-                    subtitle: "长列表里高频分配 / 释放 256KB 临时缓冲，制造内存尖峰。",
-                    tags: ["Allocations", "Peak", "Churn"],
-                    expectation: "sawtooth + peak footprint",
-                    identifier: "perf.scenario.alloc",
-                    destination: { AllocationStormViewController() }
-                ),
-            ],
-            problemNote: "「用户说卡」无法直接进 Instruments：没有稳定的复现路径，trace 里全是噪声；只看平均帧率又会漏掉 500ms 级的主线程阻塞。",
-            aiNote: "先用 MCP 让 Agent 读取 Time Profiler / Hitch 报告，按最重的主线程栈自动生成最小复现实验；再把「运行 → 采集 → 归因」固化成可重复命令。"
-        )
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-}
-
 // MARK: - 02 Exceptions
 
 final class ExceptionsHomeViewController: ModuleHomeViewController {
@@ -79,7 +38,10 @@ final class ExceptionsHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }
 
 // MARK: - 03 Exchange
@@ -120,48 +82,10 @@ final class ExchangeHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-}
-
-// MARK: - 04 AI-Native
-
-final class AINativeHomeViewController: ModuleHomeViewController {
-    init() {
-        super.init(
-            module: .aiNative,
-            metrics: [
-                .init("SKILLS", "03", detail: "可复用调试剧本", color: LabUI.violet),
-                .init("STATES", "05", detail: "MCP 通道状态", color: LabUI.cyan),
-                .init("ARTIFACTS", "03", detail: "XCTest / LLDB / MCP", color: LabUI.mint),
-            ],
-            missionTitle: "把调试经验变成可复用资产",
-            missionBody: "AI-Native 不是「让模型猜」：而是把 LLDB 的异步通道纪律、排查步骤和终端命令沉淀成 Skill / 模板 / 命令桩，让每次演示和回归都走同一条可审计路径。",
-            scenarios: [
-                .init(
-                    index: "4.1",
-                    title: "MCP 通道 + Skills",
-                    subtitle: "状态机演示 interrupt / status 轮询；内置可复制的 LLDB Skill。",
-                    tags: ["Xcode MCP", "LLDB", "Skill"],
-                    expectation: "no command while running",
-                    identifier: "ai.scenario.skills",
-                    destination: { SkillLibraryViewController() }
-                ),
-                .init(
-                    index: "4.2",
-                    title: "Terminal-first 命令桩",
-                    subtitle: "一键生成 XCTest 桩、LLDB 脚本与 MCP JSON 到沙盒。",
-                    tags: ["XCTest", "LLDB", "MCP"],
-                    expectation: "generated artifacts on disk",
-                    identifier: "ai.scenario.terminal",
-                    destination: { TerminalAutomationViewController() }
-                ),
-            ],
-            problemNote: "调试经验留在个人肌肉记忆里：换一个人、换一次会话，就要重新摸索 process status 与 interrupt 的时机，容易把现场放跑。",
-            aiNote: "把「先取证再继续」写成可执行的 Skill 与 MCP guardrail，让 Agent 在异步 resuming 状态下也遵守通道纪律；终端命令桩则把一次性操作变成可回归资产。"
-        )
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 }
 
 // MARK: - 05 Architecture
@@ -202,5 +126,8 @@ final class ArchitectureHomeViewController: ModuleHomeViewController {
         )
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 }

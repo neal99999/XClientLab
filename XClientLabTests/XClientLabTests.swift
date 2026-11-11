@@ -3,6 +3,18 @@ import XCTest
 
 final class XClientLabCoreTests: XCTestCase {
 
+    // MARK: - 演示：取消注释后测试会失败（用于对比验证 CI / 测试报错输出）
+    //
+    // 打开方法：删掉下面每行行首的 "// "（或选中后按 ⌘/ 取消注释），再运行测试，
+    // `testDemoIntentionallyFailing` 会失败，报错信息为 "Intentional failure ..."。
+    // 验证完把注释恢复原样即可。
+    //
+//     func testDemoIntentionallyFailing() {
+//         let snapshot = BookFactory.make(sequence: 1, mid: 42_000)
+//         XCTAssertEqual(snapshot.bids.count, 13, "Intentional failure: order book has 12 levels, not 13")
+//         XCTAssertTrue(false, "Intentional failure: this assertion always fails")
+//     }
+
     // MARK: - 3.2 Order book
 
     func testBookFactoryProducesTwelveSortedLevelsPerSide() {

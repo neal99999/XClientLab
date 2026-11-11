@@ -1,0 +1,28 @@
+---
+description: iOS performance optimization rules: 16ms main thread frame budget, background JSON parsing, ImageIO downsampling, overdraw prevention, and WebSocket throttle
+globs: XClientLab/**/*.swift,Packages/**/*.swift
+alwaysApply: false
+---
+# Performance Optimization & Frame Budget Rules
+
+## 1. Main Thread 16ms Frame Budget
+- Main thread is reserved strictly for **UI assembly, layout calculations, and user touch events**.
+- Offload to background queues (`DispatchQueue.global()` or `Task.detached`):
+  - Heavy JSON parsing (> 50 items).
+  - Regular expression pattern matching on long strings.
+  - Disk file I/O and persistence.
+- Any calculation exceeding 16ms (or 8ms under 120Hz ProMotion) must use chunked execution or cooperative cancellation.
+
+## 2. Rendering & Overdraw Prevention
+- Minimize view nesting depth; avoid redundant container views.
+- Composite opaque background layers where possible to avoid GPU blending penalties from multiple transparent `alpha < 1.0` layers.
+- **Rounded Corners**: Do NOT use `layer.cornerRadius + masksToBounds = true` directly on high-frequency recycled list cells (causes GPU offscreen rendering copies). Use CoreGraphics pre-rendering or transparent overlays.
+- Do NOT invoke full `setNeedsDisplay()` or `reloadData()` for streaming updates. Update only dirty rects or specific changed cells.
+
+## 3. High-Frequency Stream Throttling
+- Real-time ticker / orderbook streams (> 50 Tick/s) must be throttled using **100ms time windows** (Throttle / Debounce).
+- Single-slot coalescing: Consume only the newest snapshot and discard stale intermediate frames.
+
+## 4. Image Decoding & Downsampling
+- Never assign full-resolution bitmaps directly to `UIImageView.image`.
+- Always downsample bitmaps to view physical dimensions (`targetPointSize * UIScreen.main.scale`) via `CGImageSourceCreateThumbnailAtIndex` before displaying on the main thread.

@@ -27,5 +27,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.rootViewController = launch
         window.makeKeyAndVisible()
         self.window = window
+        DispatchQueue.main.async {
+            PerformanceDiagnostics.markFirstFrame()
+        }
     }
 }

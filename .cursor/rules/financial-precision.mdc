@@ -1,0 +1,26 @@
+---
+description: Financial precision and trading idempotency: Decimal/String calculations, ban on Double/Float, non-idempotent retry ban, and monotonic Sequence IDs
+globs: **/*Model*.swift,**/*Trade*.swift,**/*Order*.swift,**/*Market*.swift,**/*Ticker*.swift
+alwaysApply: false
+---
+# Financial Precision & Trading Idempotency Rules
+
+## 1. Zero Binary Floating-Point Precision Loss
+- **Strictly prohibit using `Double` or `Float` for currency, token amounts, balances, margin, or prices**.
+- Binary floating points cannot represent decimal fractions precisely (e.g., `0.1 + 0.2 != 0.3`).
+- All financial numbers must be stored as `String` or `Decimal` in data models.
+- Calculations must use `NSDecimalNumber` or custom big-number utility methods with explicit rounding modes (`.plain`, `.down`) and scale.
+
+## 2. Idempotency & Retry Bans on Write Endpoints
+- Non-idempotent endpoints (**place order, cancel order, transfer, liquidation**) must **never** be retried blindly on network timeouts.
+- On timeout or ambiguous response:
+  1. Treat state as **Unknown / In-Flight**.
+  2. Do not report false failure or automatically re-submit.
+  3. Prompt the user to check order history or poll order status using an idempotent `ClientOrderId`.
+
+## 3. Monotonic Sequence ID & Out-of-Order Defense
+- When receiving order/account updates via both HTTP responses and WebSocket pushes:
+  - Track a monotonic `Sequence ID`.
+  - Discard any packet where `incomingSeq <= currentSeq`.
+  - Prevent state rollbacks (e.g. from `filled` back to `pending`).
+- Enforce unidirectional state machine transitions: `pending ➔ partially_filled ➔ filled / cancelled`.

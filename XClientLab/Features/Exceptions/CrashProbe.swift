@@ -25,7 +25,7 @@ enum CrashProbe {
         source.setEventHandler {
             // The "released" object's address survived in a callback context.
             // 0x1d is never a valid user-space mapping on iOS.
-            let dangling = UnsafeMutableRawPointer(bitPattern: 0x1d)!
+            let dangling = UnsafeMutableRawPointer(bitPattern: 0x1D)!
             let payload = [UInt8](repeating: 0x41, count: 64)
             payload.withUnsafeBytes { buffer in
                 _ = memcpy(dangling, buffer.baseAddress, buffer.count)
@@ -40,16 +40,16 @@ enum CrashProbe {
     /// writing into a region after it has been unmapped. The first store after
     /// `munmap` traps; the others make the timing feel "intermittent".
     static func triggerConcurrentStomp() {
-        let bytes = 16_384
+        let bytes = 16384
         guard let region = mmap(nil, bytes, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0) else {
             return
         }
         memset(region, 0x41, bytes)
         munmap(region, bytes)
 
-        for worker in 0..<8 {
+        for worker in 0 ..< 8 {
             DispatchQueue.global(qos: .userInitiated).async {
-                for step in 0..<1_000_000 {
+                for step in 0 ..< 1_000_000 {
                     region.storeBytes(
                         of: UInt64(step &+ worker),
                         toByteOffset: (step & 0x3F) * 8,

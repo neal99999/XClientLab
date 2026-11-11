@@ -14,9 +14,30 @@ xcuserdata/
 # macOS
 .DS_Store
 
+# Claude 本地会话配置（不进仓库）
+.claude/settings.local.json
+
 # Demo artifacts / screenshots
 /tmp/xclientlab-shots/
 *.xcresult
 
 # Local automation output copied out of the simulator
 XClientLabTests/Generated/
+
+# Fastlane / Bundler
+fastlane/test_output/
+vendor/bundle/
+.bundle/
+fastlane/.env*
+!fastlane/.env.example
+
+# MCP local credentials
+.claude/mcp/.env
+mcp/.env
+__pycache__/
+
+# Instruments traces & Local backups
+*.trace/
+*.trace
+*.bak
+.tmp*/

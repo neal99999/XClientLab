@@ -20,8 +20,14 @@ final class UAFScenarioViewController: LabBaseViewController {
     private let fireButton = LabButton(title: "ARM SYSTEM-STACK UAF", style: .destructive, accent: LabUI.coral)
     private let cancelButton = LabButton(title: "CANCEL", style: .ghost)
 
-    init() { super.init(accent: LabUI.coral) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.coral)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -102,7 +108,7 @@ final class UAFScenarioViewController: LabBaseViewController {
         ))
         add(LabCalloutView(
             kind: .insight,
-            message: "面试讲解顺序：先承认这是真实崩溃 → 说明 0x1d 的含义 → 展示系统栈 → 用寄存器/队列归属把锅从系统挪回生命周期。"
+            message: "讲解顺序：先承认这是真实崩溃 → 说明 0x1d 的含义 → 展示系统栈 → 用寄存器/队列归属把锅从系统挪回生命周期。"
         ))
 
         add(LabConsoleView(store: viewModel.console, title: "UAF LOG", height: 170, accent: LabUI.coral))
@@ -140,7 +146,9 @@ final class UAFScenarioViewController: LabBaseViewController {
         ) { [weak self] in self?.viewModel.arm() }
     }
 
-    @objc private func cancelTapped() { viewModel.cancel() }
+    @objc private func cancelTapped() {
+        viewModel.cancel()
+    }
 
     @objc private func copyReport() {
         UIPasteboard.general.string = CrashProbe.expectedSystemStackReport

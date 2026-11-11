@@ -1,0 +1,297 @@
+name: iOS CD - Continuous Delivery
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Target Delivery Channel"
+        required: true
+        default: "testflight"
+        type: choice
+        options:
+          - "testflight"
+          - "adhoc"
+          - "simulator_zip"
+      skip_tests:
+        description: "Skip running tests before packaging"
+        required: false
+        default: false
+        type: boolean
+      build_number:
+        description: "Custom build number (leave blank for CI run number)"
+        required: false
+        default: ""
+        type: string
+      changelog:
+        description: "Changelog / Release Notes"
+        required: false
+        default: "Automated release build from GitHub Actions CD pipeline"
+        type: string
+
+# CD 任务严禁同一时间并发执行多个发布打架，同时不应在交付中途取消发布
+concurrency:
+  group: ios-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  deliver:
+    name: Package & Deliver (Xcode 27.x)
+    runs-on: xcode-27
+    timeout-minutes: 60
+
+    env:
+      PROJECT: XClientLab.xcodeproj
+      SCHEME: XClientLab
+      FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT: "120"
+      FASTLANE_OPT_OUT_USAGE: "1"
+      FASTLANE_SKIP_UPDATE_CHECK: "1"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # 获取完整提交历史与标签，便于生成 changelog
+
+      - name: Select Xcode 27.1
+        run: |
+          set -euo pipefail
+          if [ -d /Applications/Xcode_27.1.app ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_27.1.app/Contents/Developer" >> "$GITHUB_ENV"
+          else
+            latest="$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1 || true)"
+            if [ -z "$latest" ]; then
+              echo "::error::No Xcode 27.x found on this runner. Use the 'xcode-27' image."
+              exit 1
+            fi
+            echo "Xcode 27.1 not found, falling back to $latest"
+            echo "DEVELOPER_DIR=$latest/Contents/Developer" >> "$GITHUB_ENV"
+          fi
+
+      - name: Show Toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ${{ github.workspace }}/DerivedData/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('XClientLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Resolve Packages
+        run: |
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME" -resolvePackageDependencies
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v6
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install Bundler Dependencies
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      # ---------------------------------------------------------------------
+      # Pre-delivery Verification Tests (可由 workflow_dispatch 手动跳过)
+      # ---------------------------------------------------------------------
+      - name: Resolve simulator destination (if testing)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.skip_tests != true }}
+        run: |
+          set -euo pipefail
+          RUNTIMES="$(xcrun simctl list runtimes)"
+          DEVICES="$(xcrun simctl list devices available)"
+          DEVTYPES="$(xcrun simctl list devicetypes)"
+
+          show_destinations() {
+            xcodebuild -project "$PROJECT" -scheme "$SCHEME" -showdestinations 2>/dev/null || true
+          }
+
+          available_destinations() {
+            local out
+            out="$(show_destinations)"
+            local avail
+            avail="$(awk '/Ineligible/{exit} /Available/{found=1; next} found{print}' <<< "$out")"
+            if [ -z "$avail" ]; then
+              avail="$out"
+            fi
+            printf '%s' "$avail"
+          }
+
+          destination_resolves() {
+            local ospat="$1" name="$2" avail
+            avail="$(available_destinations)"
+            echo "$avail" | grep -Eq "OS[:=]${ospat}.*name[:=]${name}|name[:=]${name}.*OS[:=]${ospat}"
+          }
+
+          pick_preinstalled() {
+            local os="$1" name ospat
+            name="$(awk -v os="$os" '
+              $0 ~ "^-- iOS " os " --" {sec=1; next}
+              /^-- / {sec=0}
+              sec && /^[ \t]+[^ \t].* \(/ {
+                line=$0
+                sub(/\(.*/, "", line)
+                gsub(/^[ \t]+|[ \t]+$/, "", line)
+                print line
+                exit
+              }' <<< "$DEVICES" || true)"
+            [ -n "$name" ] || return 1
+            ospat="${os//./\\.}"
+            destination_resolves "$ospat" "$name" || return 1
+            DEST_NAME="$name"
+            DEST_OS="$os"
+            echo "✅ using preinstalled $name on iOS $os"
+          }
+
+          DEST_NAME=""
+          DEST_OS=""
+
+          if grep -q "iOS 27.1" <<< "$RUNTIMES"; then
+            runtime_id="$(grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS-27-1' <<< "$RUNTIMES" | head -1 || true)"
+            devtype="$(grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.iPhone[^)]*' <<< "$DEVTYPES" | head -1 || true)"
+            if [ -n "$runtime_id" ] && [ -n "$devtype" ]; then
+              xcrun simctl delete "CI-iPhone-27-1" 2>/dev/null || true
+              if xcrun simctl create "CI-iPhone-27-1" "$devtype" "$runtime_id"; then
+                if destination_resolves '27\.1' 'CI-iPhone-27-1'; then
+                  DEST_NAME="CI-iPhone-27-1"
+                  DEST_OS="27.1"
+                  echo "✅ created CI-iPhone-27-1 on iOS 27.1 ($devtype)"
+                fi
+              fi
+            fi
+          fi
+
+          if [ -z "$DEST_NAME" ]; then
+            for os in 27.1 27.2; do
+              pick_preinstalled "$os" && break
+            done
+          fi
+
+          if [ -z "$DEST_NAME" ]; then
+            DEST_NAME="iPhone 18 Pro Max"
+            DEST_OS="27.1"
+          fi
+
+          DESTINATION="platform=iOS Simulator,name=$DEST_NAME,OS=$DEST_OS"
+          echo "DESTINATION=$DESTINATION" >> "$GITHUB_ENV"
+
+      - name: Run Pre-delivery Verification Tests
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.skip_tests != true }}
+        run: |
+          bundle exec fastlane test destination:"$DESTINATION"
+
+      # ---------------------------------------------------------------------
+      # Fastlane Packaging & Delivery
+      # ---------------------------------------------------------------------
+      - name: Deliver via Fastlane
+        env:
+          # 传递 GitHub Secrets 到 Fastlane 环境变量
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID || secrets.ASC_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID || secrets.ASC_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT || secrets.ASC_KEY_CONTENT }}
+          APP_STORE_CONNECT_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_KEY_BASE64 || secrets.ASC_KEY_BASE64 }}
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 || secrets.CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD || secrets.CERTIFICATE_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 || secrets.PROVISIONING_PROFILE_BASE64 }}
+          PROVISIONING_PROFILE_SPECIFIER: ${{ secrets.PROVISIONING_PROFILE_SPECIFIER }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          PGYER_API_KEY: ${{ secrets.PGYER_API_KEY }}
+          CUSTOM_BUILD_NUMBER: ${{ inputs.build_number }}
+          RELEASE_CHANGELOG: ${{ inputs.changelog }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/output
+
+          # 决定分发渠道：若为手触取输入，否则主干/标签默认走 testflight。
+          # 只读取 env，禁止在 run 脚本里展开 ${{ inputs.* }}，避免脚本注入。
+          TARGET_CHANNEL="${INPUT_CHANNEL:-testflight}"
+
+          CHANGELOG="${RELEASE_CHANGELOG:-Release triggered by GitHub Actions (commit: ${GITHUB_SHA:0:7})}"
+
+          echo "🚀 Executing delivery pipeline for channel: $TARGET_CHANNEL"
+
+          # 检查签名密钥是否存在：若不存在，平滑降级打包模拟器产物，不报非预期崩溃
+          HAS_SIGNING=false
+          if [ -n "${BUILD_CERTIFICATE_BASE64:-}" ] || [ -n "${MATCH_GIT_URL:-}" ]; then
+            HAS_SIGNING=true
+          fi
+
+          if [ "$TARGET_CHANNEL" = "simulator_zip" ]; then
+            echo "📦 Building Simulator .app artifact..."
+            bundle exec fastlane package_simulator
+          elif [ "$TARGET_CHANNEL" = "adhoc" ]; then
+            if [ "$HAS_SIGNING" = "true" ]; then
+              bundle exec fastlane adhoc
+            else
+              echo "::warning::No Ad-Hoc code signing secrets configured. Falling back to packaging simulator .app."
+              bundle exec fastlane package_simulator
+            fi
+          else
+            # 默认 TestFlight
+            if [ "$HAS_SIGNING" = "true" ]; then
+              bundle exec fastlane beta changelog:"$CHANGELOG"
+            else
+              echo "::warning::No Code Signing secrets configured (BUILD_CERTIFICATE_BASE64 or MATCH_GIT_URL missing)."
+              echo "::warning::Packaging Simulator .app zip and building unsigned binary so artifacts are generated."
+              bundle exec fastlane package_simulator
+            fi
+          fi
+
+      # ---------------------------------------------------------------------
+      # Upload Artifacts & GitHub Release
+      # ---------------------------------------------------------------------
+      - name: Upload Delivery Artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: delivery-artifacts-${{ github.run_id }}
+          path: |
+            build/output
+            fastlane/test_output
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Create GitHub Release (on tag push)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG_NAME="${GITHUB_REF#refs/tags/}"
+          echo "🏷️ Creating GitHub Release for $TAG_NAME..."
+
+          FILES_TO_UPLOAD=()
+          for f in build/output/*; do
+            if [ -f "$f" ]; then
+              FILES_TO_UPLOAD+=("$f")
+            fi
+          done
+
+          if [ ${#FILES_TO_UPLOAD[@]} -gt 0 ]; then
+            gh release create "$TAG_NAME" "${FILES_TO_UPLOAD[@]}" \
+              --title "Release $TAG_NAME" \
+              --generate-notes
+            echo "✅ GitHub Release $TAG_NAME created with ${#FILES_TO_UPLOAD[@]} assets!"
+          else
+            gh release create "$TAG_NAME" \
+              --title "Release $TAG_NAME" \
+              --generate-notes
+            echo "✅ GitHub Release $TAG_NAME created!"
+          fi

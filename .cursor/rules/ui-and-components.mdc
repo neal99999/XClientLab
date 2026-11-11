@@ -1,0 +1,25 @@
+---
+description: UI construction guidelines: Pure code UIKit + SnapKit, single source of truth ViewState, render function, and mandatory 6-state UI delivery matrix
+globs: **/*ViewController*.swift,**/*View*.swift
+alwaysApply: false
+---
+# UI Construction & Component Delivery Rules
+
+## 1. Pure Code UIKit + SnapKit
+- Build all views, view controllers, and layout constraints programmatically using **UIKit + SnapKit**.
+- Do NOT use SwiftUI, Storyboard, or XIB.
+- Use `LabUI` color tokens (`LabUI.bg`, `LabUI.cardBg`, `LabUI.mint`, `LabUI.coral`, `LabUI.cyan`, `LabUI.amber`, `LabUI.violet`, etc.) to maintain consistent dark-mode styling.
+
+## 2. Unidirectional Data Flow (UDF)
+- Every ViewController must observe a single source of truth: `ViewModel.ViewState`.
+- All view updates must be consolidated inside a single `render(_ state: ViewState)` method.
+- User actions must be dispatched to the ViewModel as Intents/Actions; never mutate UI state directly from event handlers.
+
+## 3. Mandatory UI "Six-State Delivery Matrix"
+Every new screen, card, or composite component must implement and visually handle all 6 states:
+1. **Loaded**: Normal presentation with complete data.
+2. **Loading**: Skeleton animation or localized activity indicator (prevent user double-tap).
+3. **Empty**: Contextual placeholder icon, explanatory text, and primary action CTA.
+4. **Error**: Clear error message with a retry mechanism.
+5. **Offline / Flaky**: Network disconnect indicator with cached fallback data.
+6. **Boundary / Overflow**: Extreme long strings, large numbers, multi-line wrapping, and small-screen layout resilience.

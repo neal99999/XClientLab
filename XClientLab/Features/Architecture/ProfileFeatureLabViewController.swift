@@ -30,8 +30,14 @@ final class ProfileFeatureLabViewController: LabBaseViewController {
         Mode(rawValue: modeControl.selectedSegmentIndex) ?? .bundled
     }
 
-    init() { super.init(accent: LabUI.amber) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.amber)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,7 +85,7 @@ final class ProfileFeatureLabViewController: LabBaseViewController {
         ))
         add(LabCalloutView(
             kind: .insight,
-            message: "面试讲解顺序：先切 MOCK 看调用方无感，再指 resource provenance 证明资源来自模块 bundle，最后用 TRACE CHAIN 串起目录服务。"
+            message: "讲解顺序：先切 MOCK 看调用方无感，再指 resource provenance 证明资源来自模块 bundle，最后用 TRACE CHAIN 串起目录服务。"
         ))
 
         modeControl.accessibilityIdentifier = "arch.profile.mode"
@@ -202,7 +208,15 @@ final class ProfileFeatureLabViewController: LabBaseViewController {
         }
     }
 
-    @objc private func modeChanged() { loadProfile() }
-    @objc private func loadTapped() { loadProfile() }
-    @objc private func chainTapped() { renderChain() }
+    @objc private func modeChanged() {
+        loadProfile()
+    }
+
+    @objc private func loadTapped() {
+        loadProfile()
+    }
+
+    @objc private func chainTapped() {
+        renderChain()
+    }
 }

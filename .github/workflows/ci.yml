@@ -1,0 +1,227 @@
+name: iOS CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+
+# 同一分支只保留最新一次运行：连续 push 时自动取消旧任务，避免旧的失败结果干扰判断
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Job 1: 静态代码检查与语法规范（快速反馈）
+  # -------------------------------------------------------------------------
+  code-quality:
+    name: Code Quality (Lint)
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Run SwiftLint Check
+        run: |
+          if command -v swiftlint >/dev/null 2>&1; then
+            swiftlint lint --quiet --no-cache XClientLab
+            echo "✅ SwiftLint static analysis passed!"
+          else
+            echo "::notice::SwiftLint not found in runner image; skipping standalone CLI lint."
+          fi
+
+  # -------------------------------------------------------------------------
+  # Job 2: 构建与自动化测试（单元、快照、UI 测试）
+  # -------------------------------------------------------------------------
+  build-and-test:
+    name: Build & Test (Xcode 27.x)
+    # 本项目是 objectVersion 110（Xcode 27 工程格式），macos-latest 目前是
+    # macOS 26 + Xcode 26.6，打不开这个工程；xcode-27 镜像自带 Xcode 27.0~27.2。
+    # 该镜像目前是 public preview，排队可能稍慢。
+    runs-on: xcode-27
+    timeout-minutes: 45
+
+    env:
+      PROJECT: XClientLab.xcodeproj
+      SCHEME: XClientLab
+      FASTLANE_OPT_OUT_USAGE: "1"
+      FASTLANE_SKIP_UPDATE_CHECK: "1"
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Select Xcode 27.1
+        run: |
+          set -euo pipefail
+          if [ -d /Applications/Xcode_27.1.app ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_27.1.app/Contents/Developer" >> "$GITHUB_ENV"
+          else
+            # 镜像滚动更新时 27.1 可能被 27.x 补丁版替换，退回到最高的 27.x
+            latest="$(ls -d /Applications/Xcode_27*.app 2>/dev/null | sort -V | tail -1 || true)"
+            if [ -z "$latest" ]; then
+              echo "::error::No Xcode 27.x found on this runner. Use the 'xcode-27' image."
+              exit 1
+            fi
+            echo "Xcode 27.1 not found, falling back to $latest"
+            echo "DEVELOPER_DIR=$latest/Contents/Developer" >> "$GITHUB_ENV"
+          fi
+
+      # 放在所有可能失败的步骤之前：任何后续失败都能在日志里对照工具链清单
+      - name: Show Toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+          xcrun simctl list devices available
+          echo "--- iPhone devicetypes ---"
+          xcrun simctl list devicetypes | grep -iE "iphone" || echo "(no iPhone devicetypes on this image)"
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/Library/Caches/org.swift.swiftpm
+            ${{ github.workspace }}/DerivedData/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('XClientLab.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Resolve Packages
+        run: |
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME" -resolvePackageDependencies
+
+      - name: Cache Ruby Gems
+        uses: actions/cache@v6
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install Bundler Dependencies
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
+      - name: Resolve simulator destination
+        run: |
+          set -euo pipefail
+
+          RUNTIMES="$(xcrun simctl list runtimes)"
+          DEVICES="$(xcrun simctl list devices available)"
+          DEVTYPES="$(xcrun simctl list devicetypes)"
+
+          show_destinations() {
+            xcodebuild -project "$PROJECT" -scheme "$SCHEME" -showdestinations 2>/dev/null || true
+          }
+
+          available_destinations() {
+            local out
+            out="$(show_destinations)"
+            local avail
+            avail="$(awk '/Ineligible/{exit} /Available/{found=1; next} found{print}' <<< "$out")"
+            if [ -z "$avail" ]; then
+              avail="$out"
+            fi
+            printf '%s' "$avail"
+          }
+
+          destination_resolves() {
+            local ospat="$1" name="$2" avail
+            avail="$(available_destinations)"
+            echo "$avail" | grep -Eq "OS[:=]${ospat}.*name[:=]${name}|name[:=]${name}.*OS[:=]${ospat}"
+          }
+
+          pick_preinstalled() {
+            local os="$1" name ospat
+            name="$(awk -v os="$os" '
+              $0 ~ "^-- iOS " os " --" {sec=1; next}
+              /^-- / {sec=0}
+              sec && /^[ \t]+[^ \t].* \(/ {
+                line=$0
+                sub(/\(.*/, "", line)
+                gsub(/^[ \t]+|[ \t]+$/, "", line)
+                print line
+                exit
+              }' <<< "$DEVICES" || true)"
+            [ -n "$name" ] || return 1
+            ospat="${os//./\\.}"
+            destination_resolves "$ospat" "$name" || return 1
+            DEST_NAME="$name"
+            DEST_OS="$os"
+            echo "✅ using preinstalled $name on iOS $os"
+          }
+
+          DEST_NAME=""
+          DEST_OS=""
+
+          # —— 首选：在 iOS 27.1（快照基线 runtime）上新建一台设备 ——
+          if grep -q "iOS 27.1" <<< "$RUNTIMES"; then
+            runtime_id="$(grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS-27-1' <<< "$RUNTIMES" | head -1 || true)"
+            devtype="$(grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.iPhone[^)]*' <<< "$DEVTYPES" | head -1 || true)"
+            if [ -n "$runtime_id" ] && [ -n "$devtype" ]; then
+              xcrun simctl delete "CI-iPhone-27-1" 2>/dev/null || true
+              xcrun simctl delete "CI-iPhone-17-iOS-27-1" 2>/dev/null || true
+              if xcrun simctl create "CI-iPhone-27-1" "$devtype" "$runtime_id"; then
+                if destination_resolves '27\.1' 'CI-iPhone-27-1'; then
+                  DEST_NAME="CI-iPhone-27-1"
+                  DEST_OS="27.1"
+                  echo "✅ created CI-iPhone-27-1 on iOS 27.1 ($devtype)"
+                fi
+              fi
+            fi
+          fi
+
+          # —— 次选/兜底：预装设备按 name+OS 钉死 ——
+          if [ -z "$DEST_NAME" ]; then
+            for os in 27.1 27.2; do
+              pick_preinstalled "$os" && break
+            done
+          fi
+
+          # —— 再兜底：镜像上实际存在的最高 iOS 27.x runtime ——
+          if [ -z "$DEST_NAME" ]; then
+            highest="$(grep -oE 'iOS 27\.[0-9]+' <<< "$RUNTIMES" | sort -V | tail -1 | cut -d' ' -f2 || true)"
+            if [ -n "$highest" ]; then
+              pick_preinstalled "$highest" || true
+            fi
+          fi
+
+          if [ -z "$DEST_NAME" ]; then
+            echo "::error::No usable iOS 27.x simulator destination. Full inventory below."
+            echo "--- runtimes ---"
+            echo "$RUNTIMES"
+            echo "--- devices available ---"
+            echo "$DEVICES"
+            echo "--- devicetypes ---"
+            echo "$DEVTYPES"
+            exit 1
+          fi
+
+          DESTINATION="platform=iOS Simulator,name=$DEST_NAME,OS=$DEST_OS"
+          echo "Selected destination: $DESTINATION"
+          echo "DESTINATION=$DESTINATION" >> "$GITHUB_ENV"
+
+      - name: Run Tests via Fastlane Scan
+        env:
+          SIMULATOR_DESTINATION: ${{ env.DESTINATION }}
+        run: |
+          set -o pipefail
+          bundle exec fastlane test destination:"$DESTINATION"
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: |
+            fastlane/test_output
+            DerivedData/Logs/Test
+          if-no-files-found: ignore
+          retention-days: 7

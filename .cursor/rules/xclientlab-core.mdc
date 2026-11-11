@@ -1,0 +1,37 @@
+---
+description: XClientLab project baseline, architecture boundaries, and commands
+globs: 
+alwaysApply: true
+---
+# XClientLab Core Architecture & Engineering Baseline
+
+You are assisting in **XClientLab**, an advanced iOS technical sandbox and financial engineering showcase.
+
+## 1. Tech Stack & Environment
+- **Platform**: iOS 18.0+, Swift 5 language mode.
+- **Project Format**: Xcode 27+ (`objectVersion = 110`).
+- **UI Framework**: Pure code **UIKit + SnapKit** (No SwiftUI, No Storyboard/XIB).
+- **Architecture**: **MVVM + Combine** with unidirectional data flow (`ViewState` ➔ `render(_:)`).
+- **Dependencies**: Pure SwiftPM (Alamofire, Kingfisher, Moya, SnapKit, Starscream, SnapshotTesting).
+
+## 2. Dependency Direction (Monodirectional)
+```
+App Target (Assembly Root) ──► LabFeatureKit (Implementation) ──► LabContracts (Pure Protocols, 0 Dependencies)
+```
+- Module communication is protocol-oriented (POP + DI).
+- Never allow `LabContracts` to import `LabFeatureKit` or `App`.
+- Never modify local packages in `Packages/` without maintaining protocol compatibility.
+
+## 3. Standard Commands (All in Makefile)
+- `make resolve`: Resolve and lock SPM dependencies.
+- `make build`: Command-line build (`CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation`).
+- `make test`: Run unit tests and UI tests.
+- `make ci`: Fastlane scan automated tests (CI mirror).
+- `make lint`: Run SwiftLint static analysis.
+- `make cd-package-sim`: Package simulator `.app.zip` for instant QA verification without signing certs.
+
+## 4. Absolute Hard Rules (Zero Tolerance)
+1. **Never use `Double` or `Float` for financial amounts or prices**. Always use `String` or `Decimal`.
+2. **Never configure automatic blind retries on non-idempotent write endpoints** (order, cancel, transfer).
+3. **Always use `[weak self]` in escaping closures** or asynchronous callbacks accessing `self`.
+4. **Never perform blocking computations (JSON parsing > 50 items, regex) on the main thread**.

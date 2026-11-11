@@ -1,5 +1,5 @@
-import Foundation
 import Darwin
+import Foundation
 
 /// Reads the process' physical memory footprint without pulling in a
 /// third-party metrics SDK. Useful for making "memory churn" visible in the UI

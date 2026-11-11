@@ -1,0 +1,30 @@
+---
+description: Swift concurrency safety and memory management: escaping closures weak self, Timer cancellation, lock granularity, and autoreleasepool
+globs: **/*.swift
+alwaysApply: false
+---
+# Concurrency Safety & Memory Management Rules
+
+## 1. Escaping Closures & Retain Cycle Defense
+- Any escaping closure (`@escaping`), asynchronous dispatch (`DispatchQueue.async`, Combine `sink`, `Task`) referencing `self` **must explicitly declare `[weak self]`**.
+- Delegate protocols must inherit from `AnyObject` and be declared `weak var delegate: ...?` in host classes.
+- Assert deallocation in `deinit` to catch retention leaks early.
+
+## 2. Timers & Asynchronous Dispatch Sources
+- `Timer` and `DispatchSourceTimer` instances must be lifecycle-bound:
+  - Explicitly call `cancel()` or `invalidate()` in `viewDidDisappear` or `deinit`.
+  - Set the reference to `nil`.
+- Ensure timers never access deallocated memory pointers in callbacks (UAF defense).
+
+## 3. Data Race & Mutex Discipline
+- Shared mutable state must never be read/written concurrently without synchronization.
+- `counter.pointee += 1` is a Read-Modify-Write operation, NOT an atomic primitive. Under high concurrency it causes lost writes.
+- Synchronize via **OSAllocatedUnfairLock**, **Serial DispatchQueue**, or **Swift Actor**.
+- Lock guidelines:
+  1. Keep critical sections as narrow as possible.
+  2. Never perform blocking I/O, networking, or delegate callbacks inside a locked critical section.
+  3. Never nest locks of different priorities to prevent deadlocks.
+
+## 4. Loop Peak-Shaving with Autoreleasepool
+- In tight loops processing large numbers of temporary objects (JSON parsing, decompression, image manipulation), wrap iterations in `@autoreleasepool { ... }` to shave memory sawtooth spikes.
+- `NSCache` instances must configure explicit `countLimit` and `totalCostLimit` and purge on `didReceiveMemoryWarning`.

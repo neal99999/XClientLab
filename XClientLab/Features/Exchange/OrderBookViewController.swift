@@ -25,12 +25,18 @@ final class OrderBookViewController: LabBaseViewController {
         accent: LabUI.mint,
         selected: 2
     )
-    private let askRows = (0..<12).map { _ in BookLevelRow(color: LabUI.coral) }
-    private let bidRows = (0..<12).map { _ in BookLevelRow(color: LabUI.mint) }
+    private let askRows = (0 ..< 12).map { _ in BookLevelRow(color: LabUI.coral) }
+    private let bidRows = (0 ..< 12).map { _ in BookLevelRow(color: LabUI.mint) }
     private let sparkline = LabSparklineView(color: LabUI.cyan)
 
-    init() { super.init(accent: LabUI.mint) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.mint)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -122,7 +128,7 @@ final class OrderBookViewController: LabBaseViewController {
 
         Publishers.CombineLatest3(viewModel.$updatesReceived, viewModel.$updatesApplied, viewModel.$coalesced)
             .receive(on: RunLoop.main)
-            .sink { [weak self] received, applied, coalesced in
+            .sink { [weak self] received, _, coalesced in
                 guard let self else { return }
                 inTile.update(value: String(format: "%.0f", viewModel.receivedPerSecond))
                 appliedTile.update(value: String(format: "%.0f", viewModel.appliedPerSecond))
@@ -165,7 +171,11 @@ final class OrderBookViewController: LabBaseViewController {
     @objc private func toggleFeed() {
         viewModel.isStreaming ? viewModel.stopStreaming() : viewModel.startStreaming()
     }
-    @objc private func resetTapped() { viewModel.reset() }
+
+    @objc private func resetTapped() {
+        viewModel.reset()
+    }
+
     @objc private func modeChanged() {
         viewModel.mode = OrderBookViewModel.Mode.allCases[modeControl.selectedSegmentIndex]
     }
@@ -199,7 +209,10 @@ private final class BookLevelRow: UIView {
         snp.makeConstraints { make in make.height.equalTo(18) }
     }
 
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     func update(level: BookLevel, accent: UIColor) {
         priceLabel.text = String(format: "%.1f", level.price)

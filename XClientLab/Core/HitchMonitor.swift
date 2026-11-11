@@ -1,6 +1,6 @@
 import Foundation
-import UIKit
 import QuartzCore
+import UIKit
 
 /// Watches the main run loop with a CADisplayLink and reports frame gaps.
 ///

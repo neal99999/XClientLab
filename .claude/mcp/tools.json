@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "serverName": "xclientlab-ios-mcp",
+  "serverVersion": "2.0.0",
+  "tools": [
+    {
+      "name": "xcode_build",
+      "description": "通过 xcodebuild 编译 XClientLab 工程（自动跳过插件信任与签名限制）",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "clean": {
+            "type": "boolean",
+            "description": "是否在编译前执行 make clean",
+            "default": false
+          }
+        }
+      }
+    },
+    {
+      "name": "xcode_test",
+      "description": "在 iOS 模拟器上运行单元测试与 UI 测试",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": "string",
+            "description": "指定测试 Target (all, XClientLabTests, XClientLabUITests)",
+            "default": "all"
+          }
+        }
+      }
+    },
+    {
+      "name": "fastlane_run",
+      "description": "调用 Fastlane 执行自动化任务 (test, build_simulator, package_simulator, beta, adhoc, lint, format_check)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "lane": {
+            "type": "string",
+            "description": "要执行的 Fastlane lane 名称",
+            "default": "test"
+          },
+          "args": {
+            "type": "string",
+            "description": "传递给 lane 的可选参数字符串",
+            "default": ""
+          }
+        },
+        "required": ["lane"]
+      }
+    },
+    {
+      "name": "simctl_booted_info",
+      "description": "查询当前已启动 (booted) 的 iOS 模拟器 UDID、名称与运行时版本",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "simctl_screenshot",
+      "description": "使用 xcrun simctl 截取已启动模拟器的当前屏幕并落盘",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "output_path": {
+            "type": "string",
+            "description": "截图保存的相对路径（默认 Docs/screenshots/mcp_capture.png）",
+            "default": "Docs/screenshots/mcp_capture.png"
+          }
+        }
+      }
+    },
+    {
+      "name": "simctl_install_launch",
+      "description": "将 DerivedData 中编译完成的 XClientLab.app 安装到已启动模拟器并唤起",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "bundle_id": {
+            "type": "string",
+            "description": "App Bundle Identifier",
+            "default": "e88ebfa25316fd8c.XClientLab"
+          }
+        }
+      }
+    },
+    {
+      "name": "lldb_disciplined_batch",
+      "description": "生成/执行 8 步通道纪律 LLDB 异步崩溃取证序列 (遵守状态机：status ➔ interrupt ➔ 轮询 stopped ➔ 取证 ➔ resume)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pid": {
+            "type": "integer",
+            "description": "目标崩溃进程 PID（可选，为空则生成标准批处理脚本）"
+          }
+        }
+      }
+    },
+    {
+      "name": "diagnostics_summary",
+      "description": "提取 DerivedData 或 fastlane/test_output 中最新的测试结果与构建诊断摘要",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}

@@ -12,6 +12,7 @@
 		A10000030000000000000003 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = A10000030000000000000002 /* Moya */; };
 		A10000040000000000000003 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = A10000040000000000000002 /* SnapKit */; };
 		A10000050000000000000003 /* Starscream in Frameworks */ = {isa = PBXBuildFile; productRef = A10000050000000000000002 /* Starscream */; };
+		A10000080000000000000003 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = A10000080000000000000002 /* SnapshotTesting */; };
 		A20000010000000000000003 /* LabContracts in Frameworks */ = {isa = PBXBuildFile; productRef = A20000010000000000000002 /* LabContracts */; };
 		A20000020000000000000003 /* LabFeatureKit in Frameworks */ = {isa = PBXBuildFile; productRef = A20000020000000000000002 /* LabFeatureKit */; };
 /* End PBXBuildFile section */
@@ -86,6 +87,7 @@
 		081CDF9D30A299DD001027C9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				A10000080000000000000003 /* SnapshotTesting in Frameworks */,
 			);
 		};
 		081CDFA730A299DD001027C9 /* Frameworks */ = {
@@ -166,6 +168,9 @@
 				081CDFA330A299DD001027C9 /* XClientLabTests */,
 			);
 			name = XClientLabTests;
+			packageProductDependencies = (
+				A10000080000000000000002 /* SnapshotTesting */,
+			);
 			productName = XClientLabTests;
 			productReference = 081CDFA030A299DD001027C9 /* XClientLabTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -233,6 +238,7 @@
 				A10000050000000000000001 /* XCRemoteSwiftPackageReference "Starscream" */,
 				A10000060000000000000001 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */,
 				A10000070000000000000001 /* XCRemoteSwiftPackageReference "SwiftFormat" */,
+				A10000080000000000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 081CDF8B30A299DC001027C9 /* Products */;
@@ -664,6 +670,14 @@
 				minimumVersion = 0.64.6;
 			};
 		};
+		A10000080000000000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pointfreeco/swift-snapshot-testing.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.17.6;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -696,6 +710,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000060000000000000001 /* XCRemoteSwiftPackageReference "SwiftLintPlugins" */;
 			productName = "plugin:SwiftLintBuildToolPlugin";
+		};
+		A10000080000000000000002 /* SnapshotTesting */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000080000000000000001 /* XCRemoteSwiftPackageReference "swift-snapshot-testing" */;
+			productName = SnapshotTesting;
 		};
 		A20000010000000000000002 /* LabContracts */ = {
 			isa = XCSwiftPackageProductDependency;

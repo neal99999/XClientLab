@@ -2,8 +2,6 @@ import Combine
 import Foundation
 import UIKit
 
-import Foundation
-
 /// Scenario 3.1 — weak-network WebSocket reconnect strategy.
 ///
 /// The transport is simulated on purpose: the interview point is the state
@@ -144,7 +142,7 @@ final class ReconnectViewModel: NSObject, ObservableObject {
             guard let self, self.attemptSerial == serial else { return }
             // 72% handshake success: enough failures to exercise backoff, enough
             // successes to show recovery.
-            if Double.random(in: 0...1) < 0.72 {
+            if Double.random(in: 0 ... 1) < 0.72 {
                 self.handleConnected()
             } else {
                 self.scheduleRetry(reason: "handshake timeout / 弱网丢包")
@@ -185,7 +183,7 @@ final class ReconnectViewModel: NSObject, ObservableObject {
 
         let exponent = Double(retryCount - 1)
         let base = min(maxDelay, baseDelay * pow(2, exponent))
-        let jitter = Double.random(in: 0.8...1.2)
+        let jitter = Double.random(in: 0.8 ... 1.2)
         let delay = min(maxDelay, base * jitter)
         let record = RetryRecord(
             index: retryCount,
@@ -249,7 +247,7 @@ final class ReconnectViewModel: NSObject, ObservableObject {
     private func scheduleChaosDropIfNeeded() {
         guard chaosEnabled, state == .connected else { return }
         chaosTimer?.invalidate()
-        let interval = Double.random(in: 1.5...3.5)
+        let interval = Double.random(in: 1.5 ... 3.5)
         chaosTimer = Timer.scheduledTimer(
             timeInterval: interval,
             target: self,
@@ -270,14 +268,13 @@ final class ReconnectViewModel: NSObject, ObservableObject {
     }
 }
 
-import Foundation
-import UIKit
-
 struct BookLevel: Identifiable, Equatable {
     let price: Double
     let size: Double
 
-    var id: Double { price }
+    var id: Double {
+        price
+    }
 }
 
 struct OrderBookSnapshot {
@@ -285,12 +282,20 @@ struct OrderBookSnapshot {
     let bids: [BookLevel]
     let asks: [BookLevel]
 
-    var bestBid: Double { bids.first?.price ?? 0 }
-    var bestAsk: Double { asks.first?.price ?? 0 }
-    var spread: Double { max(0, bestAsk - bestBid) }
+    var bestBid: Double {
+        bids.first?.price ?? 0
+    }
+
+    var bestAsk: Double {
+        asks.first?.price ?? 0
+    }
+
+    var spread: Double {
+        max(0, bestAsk - bestBid)
+    }
 
     static func initial() -> OrderBookSnapshot {
-        BookFactory.make(sequence: 0, mid: 42_000)
+        BookFactory.make(sequence: 0, mid: 42000)
     }
 }
 
@@ -303,7 +308,7 @@ enum BookFactory {
         bids.reserveCapacity(depth)
         asks.reserveCapacity(depth)
 
-        for index in 1...depth {
+        for index in 1 ... depth {
             let bidPrice = ((mid - tick * Double(index)) * 10).rounded() / 10
             let askPrice = ((mid + tick * Double(index)) * 10).rounded() / 10
             let bidSize = (0.08 + Double((sequence * 13 + index * 7) % 100) / 30)
@@ -322,14 +327,14 @@ final class OrderBookFeed {
     private let queue = DispatchQueue(label: "xclientlab.orderbook.feed", qos: .userInitiated)
     private var timer: DispatchSourceTimer?
     private var sequence = 0
-    private var mid: Double = 42_000
+    private var mid: Double = 42000
 
     var onSnapshot: ((OrderBookSnapshot) -> Void)?
 
     func start(interval: TimeInterval = 0.012) {
         stop()
         sequence = 0
-        mid = 42_000
+        mid = 42000
         let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(2))
         timer.setEventHandler { [weak self] in
@@ -347,8 +352,8 @@ final class OrderBookFeed {
     private func emit() {
         sequence += 1
         // Slow random walk plus a sine wobble, so the book visibly moves.
-        mid += Double.random(in: -0.35...0.35) + sin(Double(sequence) / 14) * 0.12
-        mid = min(max(mid, 41_000), 43_000)
+        mid += Double.random(in: -0.35 ... 0.35) + sin(Double(sequence) / 14) * 0.12
+        mid = min(max(mid, 41000), 43000)
         onSnapshot?(BookFactory.make(sequence: sequence, mid: mid))
     }
 }
@@ -420,7 +425,9 @@ final class OrderBookViewModel: NSObject, ObservableObject {
         case throttled
         case diff
 
-        var id: String { rawValue }
+        var id: String {
+            rawValue
+        }
 
         var title: String {
             switch self {
@@ -561,7 +568,7 @@ final class OrderBookViewModel: NSObject, ObservableObject {
         console.clear()
     }
 
-    @objc private func frameTick(_ link: CADisplayLink) {
+    @objc private func frameTick(_: CADisplayLink) {
         guard isStreaming else { return }
 
         if mode != .raw, let snapshot = pipeline.take() {
@@ -590,12 +597,16 @@ final class OrderBookViewModel: NSObject, ObservableObject {
 
         var changed = 0
         let newBids = snapshot.bids.map { level -> BookLevel in
-            if oldBids[level.price] == level.size { return level }
+            if oldBids[level.price] == level.size {
+                return level
+            }
             changed += 1
             return level
         }
         let newAsks = snapshot.asks.map { level -> BookLevel in
-            if oldAsks[level.price] == level.size { return level }
+            if oldAsks[level.price] == level.size {
+                return level
+            }
             changed += 1
             return level
         }

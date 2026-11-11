@@ -7,7 +7,9 @@ enum LabModule: String, CaseIterable, Identifiable {
     case aiNative
     case architecture
 
-    var id: String { rawValue }
+    var id: String {
+        rawValue
+    }
 
     var index: String {
         switch self {
@@ -58,7 +60,7 @@ enum LabModule: String, CaseIterable, Identifiable {
         case .exchange:
             return "弱网重连状态机与高频盘口节流：稳定性不是重试，而是纪律。"
         case .aiNative:
-            return "Xcode MCP 通道纪律 × LLDB Skill × Terminal-first 自动化。"
+            return "Rules / Skills / Agents / Hooks / MCP：把工程纪律做成可运行的 AI-Native 操作系统。"
         case .architecture:
             return "两个本地 SPM 包演示单向依赖、资源隔离与 POP + DI：契约 0 依赖，实现可替换。"
         }
@@ -89,7 +91,7 @@ enum LabModule: String, CaseIterable, Identifiable {
         case .performance: return ["Time Profiler", "Allocations", "Hitches"]
         case .exceptions: return ["LLDB", "MCP", "UAF", "TSan"]
         case .exchange: return ["WebSocket", "Backoff", "Diff", "Throttle"]
-        case .aiNative: return ["Xcode MCP", "Skills", "Terminal"]
+        case .aiNative: return ["AI-Native", "Skills", "MCP", "五位一体"]
         case .architecture: return ["SPM", "POP", "DI", "资源"]
         }
     }

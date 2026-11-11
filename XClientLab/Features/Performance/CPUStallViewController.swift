@@ -34,8 +34,14 @@ final class CPUStallViewController: LabBaseViewController {
         selected: 1
     )
 
-    init() { super.init(accent: LabUI.coral) }
-    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    init() {
+        super.init(accent: LabUI.coral)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -117,6 +123,7 @@ final class CPUStallViewController: LabBaseViewController {
 
         intensityControl.accessibilityIdentifier = "cpu.intensity"
         runButton.accessibilityIdentifier = "cpu.run"
+        resetButton.accessibilityIdentifier = "cpu.reset"
         runButton.addTarget(self, action: #selector(runTapped), for: .touchUpInside)
         resetButton.addTarget(self, action: #selector(resetTapped), for: .touchUpInside)
         intensityControl.addTarget(self, action: #selector(intensityChanged), for: .valueChanged)
@@ -174,8 +181,14 @@ final class CPUStallViewController: LabBaseViewController {
         }
     }
 
-    @objc private func runTapped() { viewModel.runStress() }
-    @objc private func resetTapped() { viewModel.reset() }
+    @objc private func runTapped() {
+        viewModel.runStress()
+    }
+
+    @objc private func resetTapped() {
+        viewModel.reset()
+    }
+
     @objc private func intensityChanged() {
         viewModel.intensity = CPUStallViewModel.Intensity(rawValue: intensityControl.selectedSegmentIndex + 1) ?? .standard
     }

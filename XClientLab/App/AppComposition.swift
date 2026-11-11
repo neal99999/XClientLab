@@ -12,11 +12,19 @@ enum AppComposition {
     ]
 
     static func bootstrap() {
+        registerModules()
+        logRegisteredServices()
+    }
+
+    private static func registerModules() {
         for module in modules {
             module.registerServices(in: container)
         }
+    }
+
+    private static func logRegisteredServices() {
         #if DEBUG
-        NSLog("[AppComposition] services=%@", container.registeredServices.joined(separator: ", "))
+            NSLog("[AppComposition] services=%@", container.registeredServices.joined(separator: ", "))
         #endif
     }
 }
