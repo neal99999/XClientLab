@@ -1,6 +1,6 @@
-# XClientLab —— 常用开发命令
+# XClientLab —— 常用开发与 CI/CD 命令
 #
-# 依赖：Xcode 27.1+ / SwiftLint 0.65.x（构建期由 SPM 插件自带）/ SwiftFormat 0.64.x（CLI）
+# 依赖：Xcode 27.1+ / SwiftLint 0.65.x（构建期由 SPM 插件自带）/ SwiftFormat 0.64.x（CLI）/ Fastlane 2.228+
 
 PROJECT      ?= XClientLab.xcodeproj
 SCHEME       ?= XClientLab
@@ -12,21 +12,25 @@ XCODEBUILD   ?= xcodebuild -project $(PROJECT) -scheme $(SCHEME) \
                 -destination "$(DESTINATION)" -derivedDataPath "$(DERIVED)"
 SWIFTLINT    ?= swiftlint
 SWIFTFORMAT  ?= swiftformat
+FASTLANE     ?= bundle exec fastlane
 
-.PHONY: help resolve build test ci lint format format-check install-hooks verify clean-spm clean
+.PHONY: help resolve build test ci lint format format-check install-hooks verify clean-spm clean cd-testflight cd-adhoc cd-package-sim
 
 help:
-	@echo "make resolve       解析/更新 SPM 依赖（生成 Package.resolved）"
-	@echo "make build         命令行构建（跳过插件信任提示）"
-	@echo "make test          运行单元 + UI 测试"
-	@echo "make ci            fastlane scan 全量测试（CI 同款）"
-	@echo "make lint          SwiftLint 静态检查（与构建期插件同配置）"
-	@echo "make format        SwiftFormat 全量格式化 XClientLab/"
-	@echo "make format-check  SwiftFormat 只检查不修改（CI 用）"
-	@echo "make verify        联合执行代码静态检查与格式验证"
-	@echo "make install-hooks 配置 Git 预提交钩子（自动运行 SwiftLint）"
-	@echo "make clean-spm     清理 SPM 依赖缓存"
-	@echo "make clean         清理 $(DERIVED)"
+	@echo "make resolve          解析/更新 SPM 依赖（生成 Package.resolved）"
+	@echo "make build            命令行构建（跳过插件信任提示）"
+	@echo "make test             运行单元 + UI 测试"
+	@echo "make ci               fastlane scan 全量测试（CI 同款）"
+	@echo "make lint             SwiftLint 静态检查（与构建期插件同配置）"
+	@echo "make format           SwiftFormat 全量格式化 XClientLab/"
+	@echo "make format-check     SwiftFormat 只检查不修改（CI 用）"
+	@echo "make verify           联合执行代码静态检查与格式验证"
+	@echo "make cd-testflight    Fastlane 打包并上传 TestFlight (CD)"
+	@echo "make cd-adhoc         Fastlane 打包 Ad-Hoc IPA 并发布 (CD)"
+	@echo "make cd-package-sim   Fastlane 打包模拟器 .app.zip 供快速预览"
+	@echo "make install-hooks    配置 Git 预提交钩子（自动运行 SwiftLint）"
+	@echo "make clean-spm        清理 SPM 依赖缓存"
+	@echo "make clean            清理 $(DERIVED)"
 
 resolve:
 	$(XCODEBUILD) -resolvePackageDependencies
@@ -39,7 +43,16 @@ test:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) -destination "$(TEST_DESTINATION)" -derivedDataPath "$(DERIVED)" CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation -disableAutomaticPackageResolution -parallel-testing-enabled NO test -only-testing:XClientLabUITests
 
 ci:
-	fastlane test
+	$(FASTLANE) test
+
+cd-testflight:
+	$(FASTLANE) beta
+
+cd-adhoc:
+	$(FASTLANE) adhoc
+
+cd-package-sim:
+	$(FASTLANE) package_simulator
 
 lint:
 	$(SWIFTLINT) lint --quiet --no-cache XClientLab

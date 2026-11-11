@@ -16,6 +16,29 @@ permissions:
   contents: read
 
 jobs:
+  # -------------------------------------------------------------------------
+  # Job 1: 静态代码检查与语法规范（快速反馈）
+  # -------------------------------------------------------------------------
+  code-quality:
+    name: Code Quality (Lint)
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Run SwiftLint Check
+        run: |
+          if command -v swiftlint >/dev/null 2>&1; then
+            swiftlint lint --quiet --no-cache XClientLab
+            echo "✅ SwiftLint static analysis passed!"
+          else
+            echo "::notice::SwiftLint not found in runner image; skipping standalone CLI lint."
+          fi
+
+  # -------------------------------------------------------------------------
+  # Job 2: 构建与自动化测试（单元、快照、UI 测试）
+  # -------------------------------------------------------------------------
   build-and-test:
     name: Build & Test (Xcode 27.x)
     # 本项目是 objectVersion 110（Xcode 27 工程格式），macos-latest 目前是
@@ -27,9 +50,8 @@ jobs:
     env:
       PROJECT: XClientLab.xcodeproj
       SCHEME: XClientLab
-      # DESTINATION 由「Resolve simulator destination」步骤动态解析后写入
-      # GITHUB_ENV；不在 job 级写死，因为这个 preview 镜像上的设备清单
-      # 和常规 Xcode 安装不一致（见该步骤内的三轮 run 教训注释）。
+      FASTLANE_OPT_OUT_USAGE: "1"
+      FASTLANE_SKIP_UPDATE_CHECK: "1"
 
     steps:
       - name: Checkout Repository
@@ -74,18 +96,21 @@ jobs:
         run: |
           xcodebuild -project "$PROJECT" -scheme "$SCHEME" -resolvePackageDependencies
 
+      - name: Cache Ruby Gems
+        uses: actions/cache@v6
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}-gems-${{ hashFiles('Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-gems-
+
+      - name: Install Bundler Dependencies
+        run: |
+          bundle config set --local path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
+
       - name: Resolve simulator destination
         run: |
-          # 三轮 run 的教训，这里不再假设镜像上有什么机型：
-          #  - run #4：预装设备按 name+OS 动态选择 → 构建、全部测试都能跑通
-          #    （快照因 27.2/27.1 渲染差异挂过，测试代码已用 precision 0.97/0.98 放宽）。
-          #  - run #5：destination 只写 OS=27.1 不写机型 → xcodebuild exit 70
-          #    （27.1 runtime 上预装设备无法被"只按 OS"的默认匹配选中）。
-          #  - run #6：硬编码 devicetype 标识符 iPhone-17 在这个 preview 镜像上
-          #    不存在（诊断 grep 输出为空），simctl create 失败。
-          # 所以：动态发现 devicetype / 预装设备，每个候选 destination 都先用
-          # xcodebuild -showdestinations 验证"真的能解析"再采用；全部失败则把
-          # 完整设备清单打进日志，供下一轮对症处理。
           set -euo pipefail
 
           RUNTIMES="$(xcrun simctl list runtimes)"
@@ -96,8 +121,6 @@ jobs:
             xcodebuild -project "$PROJECT" -scheme "$SCHEME" -showdestinations 2>/dev/null || true
           }
 
-          # 只取 -showdestinations 的 Available 段，避免误匹配 Ineligible 里的同款；
-          # 老格式没有分段标记时退回全量输出。
           available_destinations() {
             local out
             out="$(show_destinations)"
@@ -109,14 +132,12 @@ jobs:
             printf '%s' "$avail"
           }
 
-          # 候选必须同时命中 OS 和 name（兼容 OS=/OS:、name=/name: 两种格式）
           destination_resolves() {
             local ospat="$1" name="$2" avail
             avail="$(available_destinations)"
             echo "$avail" | grep -Eq "OS[:=]${ospat}.*name[:=]${name}|name[:=]${name}.*OS[:=]${ospat}"
           }
 
-          # 从 devices available 输出里取指定 OS 段的第一台预装设备名
           pick_preinstalled() {
             local os="$1" name ospat
             name="$(awk -v os="$os" '
@@ -141,7 +162,6 @@ jobs:
           DEST_OS=""
 
           # —— 首选：在 iOS 27.1（快照基线 runtime）上新建一台设备 ——
-          # 机型从镜像实际存在的 devicetype 里挑，不硬编码型号名。
           if grep -q "iOS 27.1" <<< "$RUNTIMES"; then
             runtime_id="$(grep -oE 'com\.apple\.CoreSimulator\.SimRuntime\.iOS-27-1' <<< "$RUNTIMES" | head -1 || true)"
             devtype="$(grep -oE 'com\.apple\.CoreSimulator\.SimDeviceType\.iPhone[^)]*' <<< "$DEVTYPES" | head -1 || true)"
@@ -158,7 +178,7 @@ jobs:
             fi
           fi
 
-          # —— 次选/兜底：预装设备按 name+OS 钉死（run #4 验证过这条路能跑通全部测试） ——
+          # —— 次选/兜底：预装设备按 name+OS 钉死 ——
           if [ -z "$DEST_NAME" ]; then
             for os in 27.1 27.2; do
               pick_preinstalled "$os" && break
@@ -188,22 +208,12 @@ jobs:
           echo "Selected destination: $DESTINATION"
           echo "DESTINATION=$DESTINATION" >> "$GITHUB_ENV"
 
-      - name: Run Unit, Snapshot & UI Tests
+      - name: Run Tests via Fastlane Scan
+        env:
+          SIMULATOR_DESTINATION: ${{ env.DESTINATION }}
         run: |
           set -o pipefail
-          mkdir -p TestResults
-          xcodebuild test \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            -derivedDataPath DerivedData \
-            -enableCodeCoverage YES \
-            -resultBundlePath TestResults/CI.xcresult \
-            -skipPackagePluginValidation \
-            -disableAutomaticPackageResolution \
-            -retry-tests-on-failure \
-            -test-iterations 2 \
-            CODE_SIGNING_ALLOWED=NO
+          bundle exec fastlane test destination:"$DESTINATION"
 
       - name: Upload Test Results
         if: always()
@@ -211,7 +221,7 @@ jobs:
         with:
           name: test-results
           path: |
-            TestResults
+            fastlane/test_output
             DerivedData/Logs/Test
           if-no-files-found: ignore
           retention-days: 7

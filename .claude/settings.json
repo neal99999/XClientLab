@@ -10,12 +10,14 @@
       "Bash(grep:*)",
       "Bash(xcrun simctl list:*)",
       "Bash(xcrun xctrace list:*)",
-      "Bash(xcodebuild -list:*)"
+      "Bash(xcodebuild -list:*)",
+      "Bash(make:*)"
     ],
     "deny": [
-      "Read(./MCIBIT/fastlane/.env.default)",
+      "Read(./fastlane/.env*)",
       "Read(./**/*.p8)",
       "Read(./**/*.p12)",
+      "Read(./**/*.mobileprovision)",
       "Bash(git push --force:*)"
     ]
   }
