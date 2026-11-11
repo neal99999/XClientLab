@@ -201,6 +201,8 @@ jobs:
             -resultBundlePath TestResults/CI.xcresult \
             -skipPackagePluginValidation \
             -disableAutomaticPackageResolution \
+            -retry-tests-on-failure \
+            -test-iterations 2 \
             CODE_SIGNING_ALLOWED=NO
 
       - name: Upload Test Results
