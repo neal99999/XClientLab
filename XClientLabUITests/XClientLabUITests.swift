@@ -200,25 +200,44 @@ final class XClientLabUITests: XCTestCase {
 
     // MARK: - Navigation helpers
 
-    /// iOS 26+ 模拟器的 XCUITest 快照里，tab 按钮可能只暴露 label 而不暴露
-    /// accessibilityIdentifier（CI 上 `"tab.lab" Button` 查 10s 仍不存在）。
-    /// 所以 identifier 查不到时退回用中文 label 匹配。
+    /// iOS 26/27 模拟器的 XCUITest 快照里，`app.tabBars` 可能拿不到按钮
+    /// （CI 上 identifier 和 label 都查不到，但首屏导航栏正常），所以多级候选：
+    /// tabBars 里的 identifier / label → 全局任意位置的 identifier / label。
     @MainActor
-    private func labTab(in app: XCUIApplication) -> XCUIElement {
-        let byIdentifier = app.tabBars.buttons["tab.lab"]
-        if byIdentifier.exists { return byIdentifier }
-        return app.tabBars.buttons["实验室"]
+    private func labTabCandidates(in app: XCUIApplication) -> [XCUIElement] {
+        [
+            app.tabBars.buttons["tab.lab"],
+            app.tabBars.buttons["实验室"],
+            app.buttons["tab.lab"],
+            app.buttons["实验室"]
+        ]
+    }
+
+    /// 把整棵无障碍树 dump 成附件，tab 查不到时用日志对症。
+    @MainActor
+    private func attachAccessibilityDump(_ app: XCUIApplication, name: String) {
+        let attachment = XCTAttachment(string: app.debugDescription)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     @MainActor
     private func openLabIndex(in app: XCUIApplication) {
-        let tab = labTab(in: app)
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "Lab tab should exist")
+        let tab = labTabCandidates(in: app).first { $0.waitForExistence(timeout: 4) }
+        guard let tab else {
+            attachAccessibilityDump(app, name: "app-tree-tab-lab-missing")
+            XCTFail("Lab tab should exist (identifier `tab.lab` or label `实验室`) — see app-tree-tab-lab-missing attachment")
+            return
+        }
         tab.tap()
         let entry = app.buttons["lab.performance"]
         // 启动转场期间点击可能被吞掉;索引没出现时补点一次再等。
         if !entry.waitForExistence(timeout: 5) {
             tab.tap()
+            if !entry.waitForExistence(timeout: 10) {
+                attachAccessibilityDump(app, name: "app-tree-lab-index-missing")
+            }
         }
         XCTAssertTrue(
             entry.waitForExistence(timeout: 15),
@@ -237,7 +256,7 @@ final class XClientLabUITests: XCTestCase {
     private func tapWhenHittable(
         _ element: XCUIElement,
         in app: XCUIApplication,
-        maxSwipes: Int = 8
+        maxSwipes: Int = 12
     ) {
         // 卡片在 UIScrollView 里时，离屏元素可能暂时不在无障碍树中；
         // 先滚动再查询，避免 waitForExistence 在首屏直接判失败。
