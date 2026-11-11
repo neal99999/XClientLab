@@ -170,9 +170,9 @@ final class XClientLabUITests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        openLabIndex(in: app)
-        tapWhenHittable(app.buttons["lab.exchange"], in: app)
-        tapWhenHittable(app.buttons["exc.scenario.book"], in: app)
+        openLabModule("lab.performance", in: app)
+        tapWhenHittable(app.buttons["perf.topic.network"], in: app)
+        tapWhenHittable(app.buttons["perf.evidence.book"], in: app)
 
         XCTAssertTrue(
             app.navigationBars["3.2 Order Book"].waitForExistence(timeout: 6),
@@ -200,9 +200,19 @@ final class XClientLabUITests: XCTestCase {
 
     // MARK: - Navigation helpers
 
+    /// iOS 26+ 模拟器的 XCUITest 快照里，tab 按钮可能只暴露 label 而不暴露
+    /// accessibilityIdentifier（CI 上 `"tab.lab" Button` 查 10s 仍不存在）。
+    /// 所以 identifier 查不到时退回用中文 label 匹配。
+    @MainActor
+    private func labTab(in app: XCUIApplication) -> XCUIElement {
+        let byIdentifier = app.tabBars.buttons["tab.lab"]
+        if byIdentifier.exists { return byIdentifier }
+        return app.tabBars.buttons["实验室"]
+    }
+
     @MainActor
     private func openLabIndex(in app: XCUIApplication) {
-        let tab = app.tabBars.buttons["tab.lab"]
+        let tab = labTab(in: app)
         XCTAssertTrue(tab.waitForExistence(timeout: 10), "Lab tab should exist")
         tab.tap()
         let entry = app.buttons["lab.performance"]
